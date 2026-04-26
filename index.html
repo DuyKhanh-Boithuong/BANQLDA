@@ -2,937 +2,2168 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hệ thống Thẩm định Bồi thường Đất đai – LĐĐ 2024</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HỆ THỐNG THẨM ĐỊNH BỒI THƯỜNG ĐẤT ĐAI – TP.HCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f8fa;--surface:#fff;--surface2:#f1f3f7;--border:#e2e6ed;--border2:#c8d0dc;
-  --blue:#1a5fa8;--blue-light:#e8f0fb;--blue-dark:#0d3d6e;
-  --green:#2d7a3a;--green-light:#eaf5ec;
-  --red:#b52b2b;--red-light:#fdf0f0;
-  --amber:#8a5200;--amber-light:#fef8ee;
-  --teal:#0a6b55;--teal-light:#e4f5f1;
-  --text:#1a1d23;--text2:#4a5568;--text3:#8a94a6;
-  --radius:8px;--radius-lg:12px;
+--navy:#0B1E3D;--navy2:#112952;--navy3:#1a3a6b;
+--gold:#C9A84C;--gold2:#E8C66A;--gold-light:#FDF6E3;
+--blue:#1E5FA8;--blue2:#2471C5;--blue-light:#EBF3FC;
+--teal:#0B7A75;--teal-light:#E3F5F4;
+--green:#2E7D32;--green-light:#E8F5E9;
+--red:#C62828;--red-light:#FFEBEE;
+--amber:#E65100;--amber-light:#FFF3E0;
+--gray0:#F8F9FB;--gray1:#EEF1F5;--gray2:#D8DEE9;--gray3:#A8B4C8;--gray4:#6B7A99;--gray5:#3D4A63;
+--text:#1a2332;--text2:#4a5568;--text3:#8896b3;
+--radius:8px;--radius-lg:12px;--radius-xl:16px;
+--shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+--shadow-lg:0 4px 12px rgba(0,0,0,.12),0 12px 40px rgba(0,0,0,.1);
+--font:'Be Vietnam Pro',system-ui,sans-serif;
+--mono:'JetBrains Mono',monospace;
 }
-body{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);height:100vh;display:flex;flex-direction:column}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;color:var(--text);background:var(--gray0);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* LAYOUT */
-.topbar{background:var(--blue-dark);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0}
-.topbar-logo{display:flex;align-items:center;gap:12px}
-.topbar-badge{background:#fff;color:var(--blue-dark);border-radius:5px;padding:3px 9px;font-size:11px;font-weight:700}
-.topbar-title{font-size:14px;font-weight:600;letter-spacing:.01em}
-.topbar-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
-.topbar-version{font-size:11px;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:4px}
+/* ── TOPBAR ── */
+.topbar{background:var(--navy);height:56px;display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0;border-bottom:2px solid var(--gold)}
+.tb-emblem{width:38px;height:38px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--navy);flex-shrink:0;letter-spacing:-.5px}
+.tb-text{flex:1;min-width:0}
+.tb-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-sub{font-size:10px;color:var(--gold2);margin-top:1px;font-weight:400}
+.tb-pills{display:flex;gap:6px;flex-shrink:0}
+.tb-pill{font-size:10px;padding:3px 8px;border-radius:100px;font-weight:500}
+.pill-online{background:rgba(46,125,50,.3);color:#81C784;border:1px solid rgba(129,199,132,.3)}
+.tb-user{width:30px;height:30px;border-radius:50%;background:var(--navy3);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gold);font-weight:600;cursor:pointer}
 
+/* ── LAYOUT ── */
 .app{display:flex;flex:1;overflow:hidden}
 
-/* SIDEBAR */
-.sidebar{width:210px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
-.nav-section{padding:8px}
-.nav-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:10px 8px 4px}
-.nav-btn{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:none;background:none;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);text-align:left;transition:.12s}
-.nav-btn:hover{background:var(--surface2);color:var(--text)}
-.nav-btn.active{background:var(--blue-light);color:var(--blue);font-weight:600}
-.nav-btn .icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:15px}
-.sidebar-warning{margin:8px;padding:9px 10px;background:var(--amber-light);border:1px solid #f5d98a;border-radius:var(--radius);font-size:11px;color:var(--amber);line-height:1.5}
+/* ── SIDEBAR ── */
+.sidebar{width:220px;flex-shrink:0;background:#fff;border-right:1px solid var(--gray2);display:flex;flex-direction:column;overflow:hidden}
+.sb-search{padding:10px 12px;border-bottom:1px solid var(--gray1)}
+.sb-search input{width:100%;border:1px solid var(--gray2);border-radius:6px;padding:6px 10px 6px 28px;font-size:12px;font-family:var(--font);background:var(--gray0);outline:none;color:var(--text)}
+.sb-search input:focus{border-color:var(--blue);background:#fff}
+.sb-search-icon{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:var(--gray3);font-size:13px;pointer-events:none}
+.sb-search-wrap{position:relative}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 0}
+.sb-section{padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--gray3);text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.sb-section:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-radius:0;font-family:var(--font);transition:.12s;position:relative}
+.nav-item:hover{background:var(--gray0)}
+.nav-item.active{background:var(--blue-light)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue);border-radius:0 2px 2px 0}
+.nav-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:.12s}
+.nav-item:not(.active) .nav-icon{background:var(--gray1)}
+.nav-item.active .nav-icon{background:var(--blue);filter:drop-shadow(0 2px 4px rgba(30,95,168,.3))}
+.nav-text{flex:1;min-width:0}
+.nav-label{font-size:12px;font-weight:500;color:var(--text);line-height:1.2}
+.nav-item.active .nav-label{color:var(--blue);font-weight:600}
+.nav-sub{font-size:10px;color:var(--text3);margin-top:1px}
+.nav-badge{font-size:10px;background:var(--red);color:#fff;border-radius:100px;padding:1px 6px;font-weight:600;flex-shrink:0}
+.sb-footer{padding:12px;border-top:1px solid var(--gray1)}
+.sb-law-badge{background:var(--amber-light);border:1px solid #FFB74D;border-radius:6px;padding:7px 10px;font-size:11px;color:var(--amber);line-height:1.5}
 
-/* MAIN */
+/* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.panel-header{padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
-.panel-header-title{font-size:15px;font-weight:600}
-.panel-header-sub{font-size:12px;color:var(--text3);margin-top:2px}
-.panel-content{flex:1;overflow-y:auto;padding:20px 24px}
-
-/* PANELS */
+.panel-bar{padding:12px 20px;background:#fff;border-bottom:1px solid var(--gray2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-title{font-size:16px;font-weight:700;color:var(--navy)}
+.panel-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.panel-actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:.12s;text-decoration:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--navy3)}
+.btn-secondary{background:#fff;color:var(--text2);border:1px solid var(--gray2)}
+.btn-secondary:hover{background:var(--gray0);border-color:var(--gray3)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy2)}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:600}
+.btn-gold:hover{background:var(--gold2)}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid #FFCDD2}
+.btn-danger:hover{background:#FFCDD2}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-icon{width:30px;height:30px;padding:0;justify-content:center;border:1px solid var(--gray2);background:#fff;color:var(--text2);border-radius:var(--radius)}
+.btn-icon:hover{background:var(--gray0)}
+.panel-content{flex:1;overflow-y:auto;padding:20px}
 .panel{display:none}.panel.active{display:block}
 
-/* FORM */
-.form-section{margin-bottom:20px}
-.form-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.form-group{display:flex;flex-direction:column;gap:4px}
-.form-group.full{grid-column:1/-1}
-.form-group label{font-size:12px;font-weight:500;color:var(--text2)}
-.form-group input,.form-group select{border:1px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:.12s}
-.form-group input:focus,.form-group select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
-.form-group input::placeholder{color:var(--text3)}
+/* ── CARDS & GRID ── */
+.card{background:#fff;border:1px solid var(--gray2);border-radius:var(--radius-lg);padding:16px 18px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title-icon{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.full{grid-column:1/-1}
 
-.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.check-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:12px;transition:.12s}
-.check-item:hover{background:var(--surface2);border-color:var(--border2)}
-.check-item input[type=checkbox]{accent-color:var(--blue);width:15px;height:15px}
+/* ── METRICS ── */
+.metric{background:#fff;border:1px solid var(--gray2);border-radius:var(--radius-lg);padding:14px 16px}
+.metric-label{font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.metric-value{font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.metric-icon{font-size:20px;float:right;margin-top:-4px}
 
-/* ASSET */
-.asset-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px}
-.asset-card-grid{display:grid;grid-template-columns:1.5fr 90px 110px 36px;gap:8px;align-items:end}
-.asset-inp{width:100%;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--text);background:#fff;outline:none}
-.asset-inp:focus{border-color:var(--blue)}
-.asset-lbl{font-size:11px;color:var(--text3);margin-bottom:3px}
-.btn-rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:20px;padding:0;line-height:1;display:flex;align-items:center;justify-content:center;width:36px;height:34px;border-radius:6px}
-.btn-rm:hover{background:var(--red-light)}
-.btn-add{width:100%;border:1px dashed var(--border2);background:none;color:var(--text2);border-radius:var(--radius);padding:7px;font-size:12px;cursor:pointer;margin-top:4px;transition:.12s}
-.btn-add:hover{background:var(--surface2);border-color:var(--blue);color:var(--blue)}
+/* ── FORM ── */
+.form-section{margin-bottom:18px}
+.fsec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--gray1);display:flex;align-items:center;gap:6px}
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:0}
+label.fl{font-size:11px;font-weight:600;color:var(--text2)}
+input.fi,select.fi,textarea.fi{border:1px solid var(--gray2);border-radius:var(--radius);padding:7px 10px;font-size:13px;font-family:var(--font);color:var(--text);background:#fff;outline:none;width:100%;transition:.12s}
+input.fi:focus,select.fi:focus,textarea.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(30,95,168,.1)}
+input.fi::placeholder{color:var(--gray3)}
+textarea.fi{resize:vertical;min-height:80px}
+.fi-mono{font-family:var(--mono);font-size:12px}
+.req{color:var(--red);margin-left:2px}
 
-.btn-primary{background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:20px;transition:.12s;letter-spacing:.01em}
-.btn-primary:hover{background:var(--blue-dark)}
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;background:var(--gray0);border-bottom:1px solid var(--gray2);white-space:nowrap}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--gray1);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--gray0)}
+.tbl .right{text-align:right}
+.tbl .mono{font-family:var(--mono);font-size:11px}
+.tbl-total td{font-weight:700;background:var(--blue-light)!important;color:var(--blue);font-size:13px;border-top:2px solid var(--blue)!important}
 
-/* RESULT */
-.res-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:600;white-space:nowrap}
-.pill-green{background:var(--green-light);color:var(--green)}
-.pill-red{background:var(--red-light);color:var(--red)}
-.pill-amber{background:var(--amber-light);color:var(--amber)}
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-gold{background:var(--gold-light);color:#7B5E0C}
+.badge-gray{background:var(--gray1);color:var(--gray4)}
+.badge-navy{background:var(--navy);color:var(--gold)}
+.badge-teal{background:var(--teal-light);color:var(--teal)}
 
-.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.metric-card{background:var(--surface2);border-radius:var(--radius);padding:12px 14px}
-.metric-lbl{font-size:11px;color:var(--text3);margin-bottom:5px}
-.metric-val{font-size:16px;font-weight:700}
-.metric-sub{font-size:11px;color:var(--text3);margin-top:3px}
+/* ── INFO BOXES ── */
+.info-box{border-radius:var(--radius);padding:10px 14px;font-size:12px;line-height:1.6;margin-bottom:12px;border-left:3px solid}
+.info-blue{background:var(--blue-light);border-color:var(--blue);color:#0a3d6b}
+.info-amber{background:var(--amber-light);border-color:#FF8F00;color:var(--amber)}
+.info-green{background:var(--green-light);border-color:var(--green);color:#1B5E20}
+.info-red{background:var(--red-light);border-color:var(--red);color:#7B1F1F}
+.info-gold{background:var(--gold-light);border-color:var(--gold);color:#6D4C00}
 
-table.res-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px}
-table.res-tbl th{text-align:left;padding:7px 10px;font-size:11px;font-weight:700;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border)}
-table.res-tbl td{padding:7px 10px;border-bottom:1px solid var(--border)}
-table.res-tbl tr.section-row td{font-size:11px;font-weight:700;color:var(--text3);background:#f7f9fd;padding:5px 10px;text-transform:uppercase;letter-spacing:.05em}
-table.res-tbl tr.total-row td{font-weight:700;background:var(--blue-light);color:var(--blue);font-size:14px}
-.right{text-align:right}
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--gray2);margin-bottom:16px}
+.tab-btn{padding:8px 16px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border:none;background:none;font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.12s;white-space:nowrap}
+.tab-btn.active{color:var(--blue);font-weight:600;border-bottom-color:var(--blue)}
+.tab-btn:hover:not(.active){color:var(--text2)}
+.tab-pane{display:none}.tab-pane.active{display:block}
 
-.info-box{border-radius:var(--radius);padding:10px 14px;font-size:12px;line-height:1.6;margin-bottom:12px}
-.info-amber{background:var(--amber-light);color:var(--amber);border:1px solid #f5d98a}
-.info-green{background:var(--green-light);color:var(--green);border:1px solid #a3d9ad}
-.info-red{background:var(--red-light);color:var(--red);border:1px solid #f5b8b8}
-.info-blue{background:var(--blue-light);color:var(--blue);border:1px solid #b8d0f5}
+/* ── MAP ── */
+#gis-map{height:400px;border-radius:var(--radius);border:1px solid var(--gray2);background:#E8EDF2}
+.map-controls{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.map-legend{background:#fff;border:1px solid var(--gray2);border-radius:var(--radius);padding:10px 12px;font-size:11px}
+.legend-item{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.legend-color{width:14px;height:14px;border-radius:3px;flex-shrink:0}
 
-/* AUDIT */
-.audit-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.audit-stat{background:var(--surface2);border-radius:var(--radius);padding:12px;text-align:center}
-.audit-num{font-size:26px;font-weight:700}
-.audit-lbl{font-size:11px;color:var(--text3);margin-top:3px}
-.audit-list{display:flex;flex-direction:column;gap:7px}
-.audit-item{display:flex;gap:10px;padding:10px 12px;border-radius:var(--radius);align-items:flex-start;border:1px solid transparent}
-.a-ok{background:var(--green-light);border-color:#a3d9ad}
-.a-warn{background:var(--amber-light);border-color:#f5d98a}
-.a-err{background:var(--red-light);border-color:#f5b8b8}
-.a-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
-.a-ok .a-icon{background:var(--green);color:#fff}
-.a-warn .a-icon{background:#c47a00;color:#fff}
-.a-err .a-icon{background:var(--red);color:#fff}
-.a-title{font-size:13px;font-weight:600;margin-bottom:2px}
-.a-desc{font-size:12px;color:var(--text2);line-height:1.4}
+/* ── WORKFLOW ── */
+.wf-timeline{position:relative;padding-left:32px}
+.wf-line{position:absolute;left:11px;top:0;bottom:0;width:2px;background:var(--gray2)}
+.wf-step{position:relative;margin-bottom:12px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--gray2);background:#fff;transition:.15s}
+.wf-step:hover{border-color:var(--gray3);box-shadow:var(--shadow)}
+.wf-dot{position:absolute;left:-26px;top:14px;width:20px;height:20px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;background:#fff;transition:.15s;z-index:1}
+.wf-step.done .wf-dot{background:var(--green);border-color:var(--green);color:#fff}
+.wf-step.active .wf-dot{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px rgba(30,95,168,.2)}
+.wf-step.pending .wf-dot{background:#fff;border-color:var(--gray3);color:var(--gray3)}
+.wf-step.blocked .wf-dot{background:var(--red-light);border-color:var(--red);color:var(--red)}
+.wf-step-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.wf-step-num{font-size:10px;font-weight:700;color:var(--text3);font-family:var(--mono);background:var(--gray1);padding:1px 5px;border-radius:3px}
+.wf-step-title{font-size:12px;font-weight:600;flex:1}
+.wf-step-dept{font-size:10px;color:var(--text3)}
+.wf-step-desc{font-size:11px;color:var(--text2);line-height:1.5}
+.wf-step-actions{margin-top:8px;display:flex;gap:6px}
 
-/* EXPORT */
-.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.export-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:.15s;background:var(--surface);text-align:left}
-.export-card:hover{border-color:var(--blue);background:var(--blue-light);box-shadow:0 2px 12px rgba(26,95,168,.08)}
-.export-card-icon{font-size:26px;margin-bottom:10px}
-.export-card-name{font-size:13px;font-weight:600;margin-bottom:4px}
-.export-card-desc{font-size:11px;color:var(--text3);line-height:1.4}
-.btn-export-all{width:100%;background:var(--teal);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-size:13px;font-weight:600;cursor:pointer;transition:.12s}
-.btn-export-all:hover{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal)}
+/* ── LAW ARTICLES ── */
+.law-item{padding:12px 14px;border:1px solid var(--gray2);border-radius:var(--radius);margin-bottom:8px;background:#fff;cursor:pointer;transition:.12s}
+.law-item:hover{border-color:var(--blue);background:var(--blue-light)}
+.law-item-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.law-item-code{font-family:var(--mono);font-size:11px;font-weight:600;background:var(--navy);color:var(--gold);padding:2px 6px;border-radius:3px}
+.law-item-title{font-size:12px;font-weight:600;flex:1}
+.law-item-body{font-size:11px;color:var(--text2);line-height:1.6}
+.law-search{display:flex;gap:8px;margin-bottom:12px}
+.law-search input{flex:1}
 
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:var(--radius-lg);width:660px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
-.modal-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.modal-head-title{font-size:14px;font-weight:600}
-.modal-body{flex:1;overflow-y:auto;padding:18px;font-size:12.5px;line-height:1.8;white-space:pre-wrap;font-family:'Courier New',monospace;color:var(--text);background:#fafbfc}
-.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
-.btn-sec{background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:7px 16px;font-size:12px;cursor:pointer;color:var(--text2)}
-.btn-sec:hover{background:var(--surface2)}
-.btn-dl-word{background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer}
-.btn-dl-word:hover{background:var(--blue-dark)}
-.btn-dl-txt{background:var(--teal);color:#fff;border:none;border-radius:var(--radius);padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer}
-.btn-dl-txt:hover{background:#07503f}
-.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
-.empty-state .e-icon{font-size:40px;margin-bottom:12px}
-.empty-state .e-title{font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text2)}
-.empty-state .e-sub{font-size:12px}
+/* ── TEMPLATE EDITOR ── */
+.tmpl-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.tmpl-card{border:1px solid var(--gray2);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:.15s;background:#fff;position:relative}
+.tmpl-card:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+.tmpl-card.selected{border-color:var(--blue);background:var(--blue-light);border-width:2px}
+.tmpl-icon{font-size:24px;margin-bottom:8px}
+.tmpl-name{font-size:12px;font-weight:600;margin-bottom:3px}
+.tmpl-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.tmpl-badge{position:absolute;top:8px;right:8px}
+
+/* ── SIGNATURE ── */
+.sig-canvas{border:2px dashed var(--gray3);border-radius:var(--radius);cursor:crosshair;background:#FAFBFF;display:block;width:100%;height:120px}
+.sig-canvas.has-sig{border-style:solid;border-color:var(--green)}
+
+/* ── AUDIT ── */
+.audit-row{display:flex;gap:10px;padding:10px 12px;border-radius:var(--radius);margin-bottom:6px;border:1px solid transparent;align-items:flex-start}
+.audit-ok{background:var(--green-light);border-color:#A5D6A7}
+.audit-warn{background:var(--amber-light);border-color:#FFCC80}
+.audit-err{background:var(--red-light);border-color:#FFCDD2}
+.audit-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.audit-ok .audit-icon{background:var(--green);color:#fff}
+.audit-warn .audit-icon{background:#E65100;color:#fff}
+.audit-err .audit-icon{background:var(--red);color:#fff}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius-xl);width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden}
+.modal-lg{width:820px}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.modal-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--blue-light)}
+.modal-title{font-size:15px;font-weight:700;flex:1;color:var(--navy)}
+.modal-close{width:30px;height:30px;border:none;background:var(--gray1);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2)}
+.modal-close:hover{background:var(--gray2)}
+.modal-body{flex:1;overflow-y:auto;padding:20px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--gray2);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* ── PDF PREVIEW ── */
+.pdf-preview{background:#fff;border:1px solid var(--gray2);border-radius:var(--radius);padding:40px;font-family:'Times New Roman',serif;font-size:13pt;line-height:1.8;color:#000;min-height:600px}
+.pdf-header{text-align:center;margin-bottom:24px}
+.pdf-header .quoc-hieu{font-size:13pt;font-weight:bold;text-align:center;margin-bottom:4px}
+.pdf-header .tieu-ngu{font-size:12pt;text-align:center;margin-bottom:12px}
+.pdf-header .doc-title{font-size:14pt;font-weight:bold;text-transform:uppercase;margin:16px 0 4px}
+.pdf-header .doc-sub{font-size:12pt}
+.pdf-divider{border:none;border-top:1px solid #000;margin:16px 0}
+.pdf-body{font-size:12pt}
+.pdf-section{margin-bottom:12px}
+.pdf-section-title{font-weight:bold;margin-bottom:4px}
+.pdf-table{width:100%;border-collapse:collapse;margin:8px 0}
+.pdf-table th,.pdf-table td{border:1px solid #000;padding:4px 8px;font-size:11pt}
+.pdf-table th{background:#EEE;font-weight:bold;text-align:center}
+.pdf-sig-row{display:flex;justify-content:space-between;margin-top:40px}
+.pdf-sig{text-align:center;width:45%}
+.pdf-sig-title{font-weight:bold;margin-bottom:60px}
+.pdf-sig-name{font-weight:bold;text-decoration:underline}
+
+/* ── PRICE DB ── */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.price-card{border:1px solid var(--gray2);border-radius:var(--radius);padding:10px 12px;background:#fff}
+.price-card-code{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--navy);background:var(--gray1);padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:6px}
+.price-card-name{font-size:11px;color:var(--text2);margin-bottom:6px}
+.price-card-val{font-size:16px;font-weight:700;color:var(--text)}
+.price-card-unit{font-size:10px;color:var(--text3)}
+.price-edit{cursor:pointer}
+.price-edit:hover .price-card-val{color:var(--blue)}
+
+/* ── UPLOAD ZONE ── */
+.upload-zone{border:2px dashed var(--gray3);border-radius:var(--radius-lg);padding:30px;text-align:center;cursor:pointer;transition:.15s;background:var(--gray0)}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--blue);background:var(--blue-light)}
+.upload-zone-icon{font-size:32px;margin-bottom:8px;opacity:.6}
+.upload-zone-text{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.upload-zone-sub{font-size:11px;color:var(--text3)}
+
+/* ── MISC ── */
+.divider{height:1px;background:var(--gray1);margin:16px 0}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:var(--gray1);color:var(--gray4);margin:2px}
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:8px;opacity:.4}
+.empty-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.empty-sub{font-size:12px}
+.scrollable{overflow-y:auto;max-height:380px}
+.sticky-header th{position:sticky;top:0;z-index:1}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;background:var(--gray1);color:var(--text2);cursor:pointer}
+.chip:hover{background:var(--gray2)}
+.chip-x{font-size:12px;color:var(--gray3)}
+progress{width:100%;height:6px;border-radius:3px;appearance:none}
+progress::-webkit-progress-bar{background:var(--gray1);border-radius:3px}
+progress::-webkit-progress-value{background:var(--blue);border-radius:3px}
+.stat-row{display:flex;gap:8px;margin-bottom:16px}
+.stat-box{flex:1;background:var(--gray0);border:1px solid var(--gray2);border-radius:var(--radius);padding:10px 12px;text-align:center}
+.stat-num{font-size:20px;font-weight:700}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:2px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray3)}
+
+/* ── DRAG HANDLE ── */
+.sidebar-resize{width:3px;background:transparent;cursor:col-resize;flex-shrink:0;transition:.12s}
+.sidebar-resize:hover{background:var(--blue)}
 </style>
 </head>
 <body>
 
+<!-- TOPBAR -->
 <div class="topbar">
-  <div class="topbar-logo">
-    <div class="topbar-badge">UBND</div>
-    <div>
-      <div class="topbar-title">Hệ thống Thẩm định Bồi thường, Hỗ trợ, Tái định cư</div>
-      <div class="topbar-sub">Luật Đất đai 2024 · Nghị định 88/2024/NĐ-CP · QĐ 5516/QĐ-UBND TP.HCM</div>
-    </div>
+  <div class="tb-emblem">UBND</div>
+  <div class="tb-text">
+    <div class="tb-title">HỆ THỐNG THẨM ĐỊNH BỒI THƯỜNG, HỖ TRỢ & TÁI ĐỊNH CƯ – TP.HỒ CHÍ MINH</div>
+    <div class="tb-sub">Luật Đất đai 2024 · NĐ 88/2024/NĐ-CP · QĐ 5516/QĐ-UBND · Cập nhật tự động</div>
   </div>
-  <div class="topbar-version">v3.0 – Offline · Không cần Internet</div>
+  <div class="tb-pills">
+    <span class="tb-pill pill-online">● Offline Mode</span>
+    <span class="tb-pill" style="background:rgba(201,168,76,.2);color:var(--gold);border:1px solid rgba(201,168,76,.3)">v4.0 Pro</span>
+  </div>
+  <div class="tb-user" title="Cán bộ thẩm định">CB</div>
 </div>
 
 <div class="app">
-  <div class="sidebar">
-    <div class="nav-section">
-      <div class="nav-label">Hồ sơ</div>
-      <button class="nav-btn active" id="nav-nhap" onclick="show('nhap')">
-        <span class="icon">📋</span> Nhập thông tin
-      </button>
-      <button class="nav-btn" id="nav-ketqua" onclick="show('ketqua')">
-        <span class="icon">📊</span> Kết quả tính toán
-      </button>
-    </div>
-    <div class="nav-section">
-      <div class="nav-label">Kiểm tra & Xuất</div>
-      <button class="nav-btn" id="nav-audit" onclick="show('audit')">
-        <span class="icon">🔍</span> Kiểm tra sai sót
-      </button>
-      <button class="nav-btn" id="nav-export" onclick="show('export')">
-        <span class="icon">💾</span> Xuất hồ sơ
-      </button>
-    </div>
-    <div style="flex:1"></div>
-    <div class="sidebar-warning">
-      ⚠️ <strong>Lưu ý pháp lý:</strong> Đây là công cụ hỗ trợ. Phương án bồi thường phải được cán bộ thẩm định xem xét và Chủ tịch UBND có thẩm quyền phê duyệt theo Điều 86 LĐĐ 2024.
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-search">
+    <div class="sb-search-wrap">
+      <span class="sb-search-icon">🔍</span>
+      <input placeholder="Tìm chức năng..." oninput="filterNav(this.value)">
     </div>
   </div>
+  <div class="sb-nav" id="sb-nav">
+    <div class="sb-section">Tổng quan</div>
+    <button class="nav-item active" data-panel="dashboard" onclick="showPanel('dashboard',this)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-text"><div class="nav-label">Dashboard</div><div class="nav-sub">Tổng hợp dữ liệu</div></div>
+    </button>
 
-  <div class="main">
-    <div class="panel-header">
-      <div>
-        <div class="panel-header-title" id="ph-title">Nhập thông tin hồ sơ</div>
-        <div class="panel-header-sub" id="ph-sub">Điền đầy đủ thông tin để tính phương án bồi thường</div>
-      </div>
-    </div>
+    <div class="sb-section">Nhập & Xử lý hồ sơ</div>
+    <button class="nav-item" data-panel="nhap" onclick="showPanel('nhap',this)">
+      <div class="nav-icon">📋</div>
+      <div class="nav-text"><div class="nav-label">Nhập hồ sơ</div><div class="nav-sub">Thông tin chủ SDĐ</div></div>
+    </button>
+    <button class="nav-item" data-panel="tinh" onclick="showPanel('tinh',this)">
+      <div class="nav-icon">🧮</div>
+      <div class="nav-text"><div class="nav-label">Tính bồi thường</div><div class="nav-sub">Rule engine LĐĐ 2024</div></div>
+    </button>
+    <button class="nav-item" data-panel="audit" onclick="showPanel('audit',this)">
+      <div class="nav-icon">✅</div>
+      <div class="nav-text"><div class="nav-label">Kiểm tra sai sót</div><div class="nav-sub">Audit pháp lý tự động</div></div>
+    </button>
 
-    <div class="panel-content">
+    <div class="sb-section">Dữ liệu nền</div>
+    <button class="nav-item" data-panel="gis" onclick="showPanel('gis',this)">
+      <div class="nav-icon">🗺️</div>
+      <div class="nav-text"><div class="nav-label">Bản đồ GIS</div><div class="nav-sub">SHP, GeoJSON, thửa đất</div></div>
+    </button>
+    <button class="nav-item" data-panel="giadata" onclick="showPanel('giadata',this)">
+      <div class="nav-icon">💰</div>
+      <div class="nav-text"><div class="nav-label">CSDL Giá đất</div><div class="nav-sub">Đơn giá + hệ số ĐC</div></div>
+    </button>
+    <button class="nav-item" data-panel="law" onclick="showPanel('law',this)">
+      <div class="nav-icon">⚖️</div>
+      <div class="nav-text"><div class="nav-label">Nguồn luật</div><div class="nav-sub">LĐĐ 2024, NĐ, QĐ</div></div>
+      <span class="nav-badge">12</span>
+    </button>
 
-      <!-- PANEL NHAP -->
-      <div class="panel active" id="panel-nhap">
-        <div class="form-section">
-          <div class="form-section-title">Thông tin chủ sử dụng đất</div>
-          <div class="form-grid">
-            <div class="form-group full"><label>Họ và tên chủ sử dụng đất *</label><input id="chu_sd" placeholder="Nguyễn Văn A"></div>
-            <div class="form-group"><label>Số CCCD / CMND *</label><input id="cccd" placeholder="012345678901" maxlength="12"></div>
-            <div class="form-group"><label>Địa chỉ thường trú</label><input id="dia_chi" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"></div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-section-title">Thông tin thửa đất</div>
-          <div class="form-grid">
-            <div class="form-group"><label>Số thửa *</label><input id="so_thua" placeholder="VD: 125"></div>
-            <div class="form-group"><label>Số tờ bản đồ *</label><input id="to_ban_do" placeholder="VD: 12"></div>
-            <div class="form-group"><label>Loại đất (theo GCN) *</label>
-              <select id="loai_dat">
-                <option value="">-- Chọn loại đất --</option>
-                <optgroup label="Đất ở">
-                  <option value="ONT">ONT – Đất ở tại nông thôn</option>
-                  <option value="ODT">ODT – Đất ở tại đô thị</option>
-                </optgroup>
-                <optgroup label="Đất nông nghiệp">
-                  <option value="LUC">LUC – Đất trồng lúa nước</option>
-                  <option value="CLN">CLN – Đất cây lâu năm</option>
-                  <option value="NTS">NTS – Đất nuôi trồng thủy sản</option>
-                  <option value="BHK">BHK – Đất bằng trồng cây hàng năm</option>
-                  <option value="RSX">RSX – Đất rừng sản xuất</option>
-                </optgroup>
-                <optgroup label="Đất phi nông nghiệp">
-                  <option value="SKC">SKC – Đất sản xuất kinh doanh phi nông nghiệp</option>
-                  <option value="TMD">TMD – Đất thương mại dịch vụ</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="form-group"><label>Diện tích theo GCN (m²) *</label><input type="number" id="dien_tich" placeholder="0" min="0" step="0.1"></div>
-            <div class="form-group"><label>Diện tích thu hồi (m²) *</label><input type="number" id="dien_tich_thu_hoi" placeholder="0" min="0" step="0.1"></div>
-            <div class="form-group"><label>Giá đất cụ thể (đ/m²) *</label><input type="number" id="gia_dat" placeholder="VD: 15000000" min="0"></div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-section-title">Căn cứ pháp lý sử dụng đất</div>
-          <div class="form-grid">
-            <div class="form-group"><label>Giấy chứng nhận QSDĐ *</label>
-              <select id="co_gcn">
-                <option value="co">Có GCN (Sổ đỏ / Sổ hồng)</option>
-                <option value="du_dk">Chưa có GCN nhưng đủ điều kiện cấp</option>
-                <option value="khong">Không có GCN, không đủ điều kiện</option>
-              </select>
-            </div>
-            <div class="form-group"><label>Nguồn gốc sử dụng đất</label>
-              <select id="nguon_goc">
-                <option value="nn_giao">Nhà nước giao có thu tiền sử dụng đất</option>
-                <option value="nn_giao_khong">Nhà nước giao không thu tiền</option>
-                <option value="chuyen_nhuong">Nhận chuyển nhượng hợp pháp</option>
-                <option value="thua_ke">Thừa kế hợp pháp</option>
-                <option value="tu_khai_pha">Tự khai phá, sử dụng lâu dài</option>
-              </select>
-            </div>
-            <div class="form-group"><label>Thời điểm bắt đầu sử dụng</label>
-              <select id="thoi_diem">
-                <option value="truoc_1993">Trước 15/10/1993</option>
-                <option value="1993_2004">Từ 15/10/1993 đến 01/7/2004</option>
-                <option value="sau_2004">Sau 01/7/2004</option>
-              </select>
-            </div>
-            <div class="form-group"><label>Tình trạng sử dụng đất</label>
-              <select id="tinh_trang">
-                <option value="dung">Đúng mục đích, ổn định</option>
-                <option value="sai">Sử dụng sai mục đích</option>
-                <option value="vi_pham">Vi phạm pháp luật đất đai</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-section-title">Tài sản gắn liền trên đất</div>
-          <div id="asset-list"></div>
-          <button class="btn-add" onclick="addAsset()">＋ Thêm tài sản trên đất</button>
-        </div>
-
-        <div class="form-section">
-          <div class="form-section-title">Điều kiện & hoàn cảnh đặc biệt</div>
-          <div class="check-grid">
-            <label class="check-item"><input type="checkbox" id="ck_di_chuyen"> Phải di chuyển chỗ ở (mất chỗ ở)</label>
-            <label class="check-item"><input type="checkbox" id="ck_chinh_sach"> Hộ chính sách / hộ nghèo</label>
-            <label class="check-item"><input type="checkbox" id="ck_nn"> Hộ sản xuất nông nghiệp thuần túy</label>
-            <label class="check-item"><input type="checkbox" id="ck_tdc_san"> Khu tái định cư đã có sẵn</label>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-section-title">Thông tin dự án thu hồi đất</div>
-          <div class="form-grid">
-            <div class="form-group full"><label>Tên dự án / công trình</label><input id="ten_da" placeholder="VD: Dự án xây dựng đường Vành đai 3 TP.HCM"></div>
-            <div class="form-group"><label>Số quyết định thu hồi đất</label><input id="so_qd" placeholder="VD: 1234/QĐ-UBND"></div>
-            <div class="form-group"><label>Ngày ký quyết định</label><input type="date" id="ngay_qd"></div>
-            <div class="form-group"><label>Cơ quan ban hành</label><input id="co_quan" placeholder="VD: UBND Thành phố Hồ Chí Minh"></div>
-            <div class="form-group"><label>Cán bộ thẩm định</label><input id="can_bo" placeholder="Họ tên cán bộ phụ trách"></div>
-          </div>
-        </div>
-
-        <button class="btn-primary" onclick="calculate()">🔢 Tính toán phương án bồi thường →</button>
-      </div>
-
-      <!-- PANEL KET QUA -->
-      <div class="panel" id="panel-ketqua">
-        <div id="result-area">
-          <div class="empty-state"><div class="e-icon">📊</div><div class="e-title">Chưa có kết quả</div><div class="e-sub">Vui lòng nhập hồ sơ và nhấn "Tính toán" để xem kết quả</div></div>
-        </div>
-      </div>
-
-      <!-- PANEL AUDIT -->
-      <div class="panel" id="panel-audit">
-        <div id="audit-area">
-          <div class="empty-state"><div class="e-icon">🔍</div><div class="e-title">Chưa có dữ liệu</div><div class="e-sub">Tính toán phương án trước để kiểm tra sai sót</div></div>
-        </div>
-      </div>
-
-      <!-- PANEL EXPORT -->
-      <div class="panel" id="panel-export">
-        <div id="export-need-calc" class="empty-state" style="display:none">
-          <div class="e-icon">⚠️</div><div class="e-title">Chưa có dữ liệu</div><div class="e-sub">Vui lòng nhập hồ sơ và tính toán trước khi xuất</div>
-        </div>
-        <div id="export-main">
-          <div class="info-box info-blue" style="margin-bottom:16px">
-            💡 <strong>Hướng dẫn:</strong> Nhấn vào loại hồ sơ để xem trước nội dung, sau đó tải về máy tính. File .txt có thể mở bằng Word để chỉnh sửa định dạng.
-          </div>
-          <div class="export-grid">
-            <button class="export-card" onclick="doExport('phuong_an')">
-              <div class="export-card-icon">📝</div>
-              <div class="export-card-name">Phương án bồi thường, hỗ trợ, TĐC</div>
-              <div class="export-card-desc">Biểu mẫu đầy đủ: thông tin hộ, thửa đất, tài sản, số tiền từng khoản, tổng cộng, ký xác nhận</div>
-            </button>
-            <button class="export-card" onclick="doExport('quyet_dinh')">
-              <div class="export-card-icon">📜</div>
-              <div class="export-card-name">Dự thảo quyết định phê duyệt</div>
-              <div class="export-card-desc">Quyết định phê duyệt phương án BT-HT-TĐC theo thể thức văn bản hành chính nhà nước</div>
-            </button>
-            <button class="export-card" onclick="doExport('bien_ban')">
-              <div class="export-card-icon">✅</div>
-              <div class="export-card-name">Biên bản kiểm tra hồ sơ</div>
-              <div class="export-card-desc">Kết quả kiểm tra pháp lý, sai sót, thiếu hồ sơ, cảnh báo, kiến nghị xử lý</div>
-            </button>
-            <button class="export-card" onclick="doExport('thong_bao')">
-              <div class="export-card-icon">📬</div>
-              <div class="export-card-name">Thông báo gửi hộ dân</div>
-              <div class="export-card-desc">Thông báo phương án BT gửi chủ sử dụng đất, số tiền, thời hạn nhận, quyền khiếu nại</div>
-            </button>
-          </div>
-          <button class="btn-export-all" onclick="doExport('toan_bo')">📦 Xuất toàn bộ hồ sơ (4 loại, 1 file)</button>
-        </div>
-      </div>
-
-    </div><!-- panel-content -->
-  </div><!-- main -->
-</div><!-- app -->
-
-<!-- MODAL -->
-<div class="modal-bg" id="modal">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-head-title" id="modal-title">Xem trước hồ sơ</div>
-      <button class="btn-sec" onclick="closeModal()">✕ Đóng</button>
-    </div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-foot">
-      <button class="btn-sec" onclick="closeModal()">Đóng</button>
-      <button class="btn-dl-txt" onclick="dlTxt()">⬇ Tải về (.txt)</button>
-      <button class="btn-dl-word" onclick="dlHtml()">⬇ Tải về (.html – mở bằng Word)</button>
-    </div>
+    <div class="sb-section">Quy trình & Xuất</div>
+    <button class="nav-item" data-panel="workflow" onclick="showPanel('workflow',this)">
+      <div class="nav-icon">🔄</div>
+      <div class="nav-text"><div class="nav-label">Quy trình 20 bước</div><div class="nav-sub">Workflow UBND</div></div>
+    </button>
+    <button class="nav-item" data-panel="bieumau" onclick="showPanel('bieumau',this)">
+      <div class="nav-icon">📄</div>
+      <div class="nav-text"><div class="nav-label">Biểu mẫu chuẩn</div><div class="nav-sub">Template + merge data</div></div>
+    </button>
+    <button class="nav-item" data-panel="kyso" onclick="showPanel('kyso',this)">
+      <div class="nav-icon">✍️</div>
+      <div class="nav-text"><div class="nav-label">Ký số & xuất PDF</div><div class="nav-sub">Chữ ký + đóng dấu</div></div>
+    </button>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-law-badge">⚠️ Công cụ hỗ trợ ra quyết định. Phương án phải được phê duyệt theo Điều 86 LĐĐ 2024.</div>
   </div>
 </div>
+<div class="sidebar-resize" id="resizer"></div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <div class="panel-bar">
+    <div>
+      <div class="panel-title" id="panel-title">Dashboard – Tổng quan hệ thống</div>
+      <div class="panel-sub" id="panel-sub">Dữ liệu tổng hợp toàn bộ hồ sơ</div>
+    </div>
+    <div class="panel-actions" id="panel-actions">
+      <button class="btn btn-secondary btn-sm" onclick="exportAllData()">💾 Sao lưu dữ liệu</button>
+      <button class="btn btn-primary btn-sm" onclick="showPanel('nhap',null)">＋ Hồ sơ mới</button>
+    </div>
+  </div>
+
+  <div class="panel-content">
+
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="metric"><div class="metric-icon">📂</div><div class="metric-label">Tổng hồ sơ</div><div class="metric-value" id="stat-total">0</div><div class="metric-sub">Đang xử lý</div></div>
+        <div class="metric"><div class="metric-icon">✅</div><div class="metric-label">Hoàn thành</div><div class="metric-value" id="stat-done" style="color:var(--green)">0</div><div class="metric-sub">Đã phê duyệt</div></div>
+        <div class="metric"><div class="metric-icon">⏳</div><div class="metric-label">Đang thẩm định</div><div class="metric-value" id="stat-pending" style="color:var(--amber)">0</div><div class="metric-sub">Cần xử lý</div></div>
+        <div class="metric"><div class="metric-icon">💵</div><div class="metric-label">Tổng bồi thường</div><div class="metric-value" id="stat-total-money" style="color:var(--blue);font-size:16px">0 đ</div><div class="metric-sub">Toàn bộ dự án</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon" style="background:var(--blue-light)">📋</span>Hồ sơ gần đây</div>
+          <div id="dashboard-recent">
+            <div class="empty"><div class="empty-icon">📂</div><div class="empty-title">Chưa có hồ sơ</div><div class="empty-sub">Nhập hồ sơ đầu tiên để bắt đầu</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon" style="background:var(--amber-light)">⚖️</span>Văn bản pháp lý mới nhất</div>
+          <div id="dashboard-laws">
+            <div class="law-item" onclick="showPanel('law',null)">
+              <div class="law-item-header"><span class="law-item-code">LĐĐ 2024</span><span class="law-item-title">Luật Đất đai 2024</span><span class="badge badge-green">Hiệu lực</span></div>
+              <div class="law-item-body">Có hiệu lực từ 01/8/2024. Áp dụng cho toàn bộ hồ sơ bồi thường từ ngày 01/8/2024.</div>
+            </div>
+            <div class="law-item" onclick="showPanel('law',null)">
+              <div class="law-item-header"><span class="law-item-code">NĐ 88/2024</span><span class="law-item-title">NĐ 88/2024/NĐ-CP</span><span class="badge badge-green">Hiệu lực</span></div>
+              <div class="law-item-body">Quy định chi tiết về bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất.</div>
+            </div>
+            <div class="law-item" onclick="showPanel('law',null)">
+              <div class="law-item-header"><span class="law-item-code">QĐ 5516</span><span class="law-item-title">QĐ 5516/QĐ-UBND TP.HCM</span><span class="badge badge-green">Hiệu lực</span></div>
+              <div class="law-item-body">Quy định cụ thể của UBND TP.HCM về hỗ trợ bổ sung cho các hộ đặc thù.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:12px">
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon" style="background:var(--teal-light)">🔄</span>Trạng thái quy trình 20 bước</div>
+          <div id="dashboard-workflow">
+            <div class="info-box info-blue">Chọn hồ sơ để xem tiến độ quy trình 20 bước theo QĐ của UBND TP.HCM.</div>
+            <button class="btn btn-secondary btn-sm" onclick="showPanel('workflow',null)">Xem quy trình →</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon" style="background:var(--gold-light)">💰</span>Bảng giá đất hiện hành</div>
+          <div id="dashboard-prices">
+            <table class="tbl"><thead><tr><th>Loại đất</th><th>Vị trí</th><th class="right">Đơn giá (đ/m²)</th><th class="right">Hệ số ĐC</th></tr></thead>
+            <tbody id="dashboard-price-rows"><tr><td colspan="4" class="empty-state" style="text-align:center;padding:20px;color:var(--text3)">Chưa có dữ liệu giá đất</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ NHẬP HỒ SƠ ═══════════════ -->
+    <div class="panel" id="panel-nhap">
+      <div class="info-box info-blue">💡 Điền đầy đủ thông tin bên dưới. Các trường có <span class="req">*</span> là bắt buộc. Dữ liệu được lưu tự động vào bộ nhớ trình duyệt.</div>
+      <div class="grid-2">
+        <div>
+          <div class="form-section">
+            <div class="fsec-title">👤 Thông tin chủ sử dụng đất</div>
+            <div class="grid-2" style="gap:8px">
+              <div class="form-group full"><label class="fl">Họ và tên<span class="req">*</span></label><input class="fi" id="n_chu" placeholder="Nguyễn Văn A"></div>
+              <div class="form-group"><label class="fl">Số CCCD / CMND<span class="req">*</span></label><input class="fi fi-mono" id="n_cccd" placeholder="012345678901" maxlength="12"></div>
+              <div class="form-group"><label class="fl">Số điện thoại</label><input class="fi" id="n_sdt" placeholder="0912 345 678"></div>
+              <div class="form-group full"><label class="fl">Địa chỉ thường trú<span class="req">*</span></label><input class="fi" id="n_diachi" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP"></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="fsec-title">📍 Thông tin thửa đất</div>
+            <div class="grid-2" style="gap:8px">
+              <div class="form-group"><label class="fl">Số thửa<span class="req">*</span></label><input class="fi fi-mono" id="n_thua" placeholder="125"></div>
+              <div class="form-group"><label class="fl">Tờ bản đồ số<span class="req">*</span></label><input class="fi fi-mono" id="n_to" placeholder="12"></div>
+              <div class="form-group"><label class="fl">Loại đất<span class="req">*</span></label>
+                <select class="fi" id="n_loai">
+                  <option value="">-- Chọn --</option>
+                  <optgroup label="Đất ở">
+                    <option value="ONT">ONT – Đất ở nông thôn</option>
+                    <option value="ODT">ODT – Đất ở đô thị</option>
+                  </optgroup>
+                  <optgroup label="Đất nông nghiệp">
+                    <option value="LUC">LUC – Đất trồng lúa nước</option>
+                    <option value="CLN">CLN – Đất cây lâu năm</option>
+                    <option value="NTS">NTS – Nuôi trồng thủy sản</option>
+                    <option value="BHK">BHK – Cây hàng năm</option>
+                    <option value="RSX">RSX – Rừng sản xuất</option>
+                  </optgroup>
+                  <optgroup label="Phi nông nghiệp">
+                    <option value="SKC">SKC – Sản xuất kinh doanh</option>
+                    <option value="TMD">TMD – Thương mại dịch vụ</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="form-group"><label class="fl">Vị trí đất</label>
+                <select class="fi" id="n_vitri">
+                  <option value="1">Vị trí 1 – Mặt đường lớn</option>
+                  <option value="2">Vị trí 2 – Tiếp giáp đường lớn</option>
+                  <option value="3">Vị trí 3 – Hẻm ≥ 4m</option>
+                  <option value="4">Vị trí 4 – Hẻm nhỏ / sâu</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="fl">Diện tích GCN (m²)<span class="req">*</span></label><input type="number" class="fi" id="n_dt" placeholder="0" min="0" step="0.1" oninput="autoFillGia()"></div>
+              <div class="form-group"><label class="fl">Diện tích thu hồi (m²)<span class="req">*</span></label><input type="number" class="fi" id="n_dtth" placeholder="0" min="0" step="0.1"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="form-section">
+            <div class="fsec-title">📜 Căn cứ pháp lý</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="form-group"><label class="fl">Giấy chứng nhận QSDĐ<span class="req">*</span></label>
+                <select class="fi" id="n_gcn">
+                  <option value="co">Có GCN (Sổ đỏ / Sổ hồng)</option>
+                  <option value="du_dk">Chưa có GCN, đủ điều kiện cấp</option>
+                  <option value="khong">Không có GCN, không đủ điều kiện</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="fl">Nguồn gốc sử dụng đất</label>
+                <select class="fi" id="n_nguongoc">
+                  <option value="nn_giao">Nhà nước giao có thu tiền</option>
+                  <option value="nn_giao_k">Nhà nước giao không thu tiền</option>
+                  <option value="mua">Nhận chuyển nhượng hợp pháp</option>
+                  <option value="thua_ke">Thừa kế hợp pháp</option>
+                  <option value="khai_pha">Tự khai phá, sử dụng lâu dài</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="fl">Thời điểm sử dụng đất</label>
+                <select class="fi" id="n_thoidiem">
+                  <option value="truoc93">Trước 15/10/1993</option>
+                  <option value="93_04">Từ 15/10/1993 đến 01/7/2004</option>
+                  <option value="sau04">Sau 01/7/2004</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="fl">Tình trạng sử dụng đất</label>
+                <select class="fi" id="n_tinhTrang">
+                  <option value="dung">Đúng mục đích, ổn định lâu dài</option>
+                  <option value="sai">Sử dụng sai mục đích</option>
+                  <option value="vi_pham">Vi phạm pháp luật đất đai</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="fl">Giá đất cụ thể (đ/m²)<span class="req">*</span></label>
+                <input type="number" class="fi fi-mono" id="n_gia" placeholder="Tự động từ CSDL hoặc nhập tay" min="0"></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="fsec-title">🏗️ Tài sản trên đất</div>
+            <div id="asset-list-nhap" style="margin-bottom:8px"></div>
+            <button class="btn btn-secondary btn-sm" onclick="addAssetNhap()">＋ Thêm tài sản</button>
+          </div>
+          <div class="form-section">
+            <div class="fsec-title">⚙️ Điều kiện đặc biệt</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 8px;border:1px solid var(--gray2);border-radius:6px"><input type="checkbox" id="ck_dc" style="accent-color:var(--blue)"> Di chuyển chỗ ở</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 8px;border:1px solid var(--gray2);border-radius:6px"><input type="checkbox" id="ck_cs" style="accent-color:var(--blue)"> Hộ chính sách/nghèo</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 8px;border:1px solid var(--gray2);border-radius:6px"><input type="checkbox" id="ck_nn" style="accent-color:var(--blue)"> Hộ thuần nông nghiệp</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 8px;border:1px solid var(--gray2);border-radius:6px"><input type="checkbox" id="ck_tdc" style="accent-color:var(--blue)"> Khu TĐC đã có sẵn</label>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="fsec-title">📁 Thông tin dự án</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="form-group"><label class="fl">Tên dự án</label><input class="fi" id="n_duan" placeholder="VD: Dự án Vành đai 3 TP.HCM"></div>
+              <div class="grid-2" style="gap:8px">
+                <div class="form-group"><label class="fl">Số QĐ thu hồi</label><input class="fi fi-mono" id="n_soqd" placeholder="1234/QĐ-UBND"></div>
+                <div class="form-group"><label class="fl">Ngày ký</label><input type="date" class="fi" id="n_ngayqd"></div>
+              </div>
+              <div class="form-group"><label class="fl">Cán bộ thẩm định</label><input class="fi" id="n_canbo" placeholder="Họ tên cán bộ phụ trách"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-gold" onclick="saveHoSo()" style="flex:1;padding:12px">💾 Lưu hồ sơ</button>
+        <button class="btn btn-primary" onclick="saveAndCalc()" style="flex:2;padding:12px">🧮 Lưu & Tính toán bồi thường →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TÍNH BỒI THƯỜNG ═══════════════ -->
+    <div class="panel" id="panel-tinh">
+      <div id="tinh-empty" class="empty">
+        <div class="empty-icon">🧮</div>
+        <div class="empty-title">Chưa có hồ sơ để tính</div>
+        <div class="empty-sub">Nhập hồ sơ và nhấn "Lưu & Tính toán" để xem kết quả</div>
+        <br><button class="btn btn-primary" onclick="showPanel('nhap',null)">Nhập hồ sơ →</button>
+      </div>
+      <div id="tinh-result" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div style="font-size:16px;font-weight:700" id="res-name">Nguyễn Văn A</div>
+            <div style="font-size:12px;color:var(--text3)" id="res-info">Thửa 125, Tờ 12</div>
+          </div>
+          <div id="res-status"></div>
+        </div>
+        <div id="res-condition" class="info-box"></div>
+        <div class="grid-3" style="margin-bottom:14px">
+          <div class="metric"><div class="metric-label">Bồi thường đất</div><div class="metric-value" id="res-btdat" style="color:var(--blue);font-size:18px">0 đ</div><div class="metric-sub" id="res-btdat-sub"></div></div>
+          <div class="metric"><div class="metric-label">Bồi thường tài sản</div><div class="metric-value" id="res-btts" style="color:var(--teal);font-size:18px">0 đ</div><div class="metric-sub" id="res-btts-sub"></div></div>
+          <div class="metric"><div class="metric-label">Tổng hỗ trợ</div><div class="metric-value" id="res-ht" style="color:var(--amber);font-size:18px">0 đ</div><div class="metric-sub" id="res-ht-sub"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title">📊 Chi tiết phương án bồi thường</div>
+          <div class="scrollable">
+            <table class="tbl"><thead><tr><th style="width:40%">Nội dung</th><th>Diện tích</th><th class="right">Đơn giá</th><th class="right">Hệ số</th><th class="right">Thành tiền</th><th>Căn cứ</th></tr></thead>
+            <tbody id="res-table-body"></tbody></table>
+          </div>
+        </div>
+        <div id="res-tdc" class="info-box info-blue" style="display:none"></div>
+        <div class="info-box info-amber">⚠️ <strong>Lưu ý pháp lý:</strong> Kết quả trên là tính toán tự động của hệ thống hỗ trợ. Phương án bồi thường chính thức phải được cán bộ thẩm định xem xét và Chủ tịch UBND cấp có thẩm quyền phê duyệt theo Điều 86 Luật Đất đai 2024 và Nghị định 88/2024/NĐ-CP.</div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-secondary" onclick="showPanel('audit',null)">🔍 Kiểm tra sai sót</button>
+          <button class="btn btn-secondary" onclick="showPanel('bieumau',null)">📄 Tạo hồ sơ biểu mẫu</button>
+          <button class="btn btn-primary" onclick="showPanel('kyso',null)">✍️ Ký số & Xuất PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ AUDIT ═══════════════ -->
+    <div class="panel" id="panel-audit">
+      <div id="audit-empty" class="empty">
+        <div class="empty-icon">✅</div><div class="empty-title">Chưa có dữ liệu kiểm tra</div>
+        <div class="empty-sub">Tính toán bồi thường trước để kiểm tra</div>
+      </div>
+      <div id="audit-result" style="display:none">
+        <div class="stat-row" id="audit-stat-row"></div>
+        <div id="audit-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ GIS ═══════════════ -->
+    <div class="panel" id="panel-gis">
+      <div class="grid-2" style="margin-bottom:12px">
+        <div class="card">
+          <div class="card-title">🗺️ Nạp dữ liệu bản đồ</div>
+          <div class="upload-zone" id="gis-drop" onclick="document.getElementById('gis-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleGisDrop(event)">
+            <div class="upload-zone-icon">🗂️</div>
+            <div class="upload-zone-text">Kéo thả hoặc nhấn để tải lên</div>
+            <div class="upload-zone-sub">Hỗ trợ: GeoJSON, KML, CSV (tọa độ)</div>
+          </div>
+          <input type="file" id="gis-file" accept=".geojson,.json,.kml,.csv" style="display:none" onchange="loadGisFile(this)">
+          <div style="margin-top:10px;font-size:11px;color:var(--text3);line-height:1.6">
+            <strong>Về file SHP:</strong> File SHP (Shapefile) cần chuyển sang GeoJSON trước. Dùng QGIS miễn phí: <em>Layer → Save As → GeoJSON</em>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ Thông tin thửa đất chọn</div>
+          <div id="gis-feature-info">
+            <div class="empty"><div class="empty-icon">📍</div><div class="empty-sub">Click vào thửa đất trên bản đồ để xem thông tin</div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="map-legend">
+              <div style="font-size:11px;font-weight:600;margin-bottom:6px;color:var(--text2)">CHÚ GIẢI</div>
+              <div class="legend-item"><div class="legend-color" style="background:#1E88E5"></div><span style="font-size:11px">Đất ở (ONT/ODT)</span></div>
+              <div class="legend-item"><div class="legend-color" style="background:#43A047"></div><span style="font-size:11px">Đất nông nghiệp</span></div>
+              <div class="legend-item"><div class="legend-color" style="background:#F57C00"></div><span style="font-size:11px">Đất phi NN</span></div>
+              <div class="legend-item"><div class="legend-color" style="background:#E53935"></div><span style="font-size:11px">Đất trong vùng thu hồi</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="map-controls">
+        <button class="btn btn-secondary btn-sm" onclick="gisMap&&gisMap.setView([10.762622,106.660172],13)">🏠 TP.HCM</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleSatellite()">🛰️ Vệ tinh</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearGisLayer()">🗑️ Xóa lớp</button>
+        <input class="fi" id="gis-search-coords" placeholder="Nhập tọa độ: 10.762622, 106.660172" style="width:240px;font-size:12px;padding:5px 10px">
+        <button class="btn btn-primary btn-sm" onclick="gotoCoords()">📍 Đến tọa độ</button>
+      </div>
+      <div id="gis-map"></div>
+    </div>
+
+    <!-- ═══════════════ GIÁ ĐẤT ═══════════════ -->
+    <div class="panel" id="panel-giadata">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('gia','dongia')">Đơn giá đất</button>
+        <button class="tab-btn" onclick="switchTab('gia','heso')">Hệ số điều chỉnh</button>
+        <button class="tab-btn" onclick="switchTab('gia','import')">Nhập dữ liệu</button>
+      </div>
+      <div class="tab-pane active" id="gia-dongia">
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+          <input class="fi" id="gia-search" placeholder="Tìm loại đất, vị trí..." style="flex:1" oninput="filterGia(this.value)">
+          <button class="btn btn-primary btn-sm" onclick="openAddGia()">＋ Thêm mức giá</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportGia()">📥 Xuất Excel</button>
+        </div>
+        <div class="scrollable">
+          <table class="tbl sticky-header" id="gia-table">
+            <thead><tr><th>Loại đất</th><th>Mã</th><th>Vị trí</th><th>Khu vực</th><th class="right">Đơn giá (đ/m²)</th><th>Hiệu lực</th><th>QĐ căn cứ</th><th>Thao tác</th></tr></thead>
+            <tbody id="gia-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane" id="gia-heso">
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+          <input class="fi" placeholder="Tìm hệ số..." style="flex:1">
+          <button class="btn btn-primary btn-sm" onclick="openAddHeSo()">＋ Thêm hệ số</button>
+        </div>
+        <div class="scrollable">
+          <table class="tbl sticky-header">
+            <thead><tr><th>Loại đất</th><th>Năm áp dụng</th><th>Quận/Huyện</th><th class="right">Hệ số K</th><th>Căn cứ</th><th>Thao tác</th></tr></thead>
+            <tbody id="heso-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane" id="gia-import">
+        <div class="info-box info-blue">Tải lên file Excel/CSV chứa bảng giá đất để cập nhật hàng loạt vào hệ thống.</div>
+        <div class="upload-zone" onclick="document.getElementById('gia-file').click()">
+          <div class="upload-zone-icon">📊</div>
+          <div class="upload-zone-text">Tải lên bảng giá đất (Excel/CSV)</div>
+          <div class="upload-zone-sub">Định dạng: loai_dat, ma, vi_tri, khu_vuc, don_gia, hieu_luc, can_cu</div>
+        </div>
+        <input type="file" id="gia-file" accept=".csv,.xlsx" style="display:none" onchange="importGia(this)">
+        <div style="margin-top:12px">
+          <div class="card-title">📥 Tải về mẫu CSV</div>
+          <button class="btn btn-secondary btn-sm" onclick="downloadGiaMau()">Tải mẫu bảng giá đất (CSV)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ NGUỒN LUẬT ═══════════════ -->
+    <div class="panel" id="panel-law">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('law','list')">Danh sách văn bản</button>
+        <button class="tab-btn" onclick="switchTab('law','add')">Thêm văn bản mới</button>
+        <button class="tab-btn" onclick="switchTab('law','search')">Tra cứu điều khoản</button>
+      </div>
+      <div class="tab-pane active" id="law-list">
+        <div class="law-search">
+          <input class="fi" id="law-search-input" placeholder="Tìm văn bản, số hiệu, nội dung..." oninput="filterLaw(this.value)">
+          <select class="fi" id="law-filter-type" onchange="filterLaw(document.getElementById('law-search-input').value)" style="width:160px">
+            <option value="">Tất cả loại</option>
+            <option value="luat">Luật</option>
+            <option value="nghi_dinh">Nghị định</option>
+            <option value="quyet_dinh">Quyết định</option>
+            <option value="thong_tu">Thông tư</option>
+            <option value="cong_van">Công văn</option>
+          </select>
+        </div>
+        <div id="law-list-content"></div>
+      </div>
+      <div class="tab-pane" id="law-add">
+        <div class="info-box info-gold">📤 Nạp văn bản pháp lý mới để hệ thống cập nhật căn cứ tính toán và soạn thảo hồ sơ.</div>
+        <div class="grid-2" style="gap:10px">
+          <div>
+            <div class="form-section">
+              <div class="fsec-title">📋 Thông tin văn bản</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="form-group"><label class="fl">Loại văn bản<span class="req">*</span></label>
+                  <select class="fi" id="law_type">
+                    <option value="luat">Luật</option>
+                    <option value="nghi_dinh">Nghị định</option>
+                    <option value="quyet_dinh">Quyết định</option>
+                    <option value="thong_tu">Thông tư</option>
+                    <option value="cong_van">Công văn</option>
+                    <option value="khac">Khác</option>
+                  </select>
+                </div>
+                <div class="form-group"><label class="fl">Số hiệu văn bản<span class="req">*</span></label><input class="fi fi-mono" id="law_code" placeholder="VD: 88/2024/NĐ-CP"></div>
+                <div class="form-group"><label class="fl">Tên đầy đủ<span class="req">*</span></label><input class="fi" id="law_name" placeholder="VD: Nghị định quy định về bồi thường..."></div>
+                <div class="grid-2" style="gap:8px">
+                  <div class="form-group"><label class="fl">Ngày ban hành</label><input type="date" class="fi" id="law_date"></div>
+                  <div class="form-group"><label class="fl">Ngày hiệu lực</label><input type="date" class="fi" id="law_effective"></div>
+                </div>
+                <div class="form-group"><label class="fl">Cơ quan ban hành</label><input class="fi" id="law_org" placeholder="VD: Chính phủ"></div>
+                <div class="form-group"><label class="fl">Trạng thái</label>
+                  <select class="fi" id="law_status">
+                    <option value="hieu_luc">Đang có hiệu lực</option>
+                    <option value="het_hl">Hết hiệu lực</option>
+                    <option value="cho_hl">Chưa có hiệu lực</option>
+                  </select>
+                </div>
+                <div class="form-group"><label class="fl">Lĩnh vực áp dụng</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px" id="law-tags-wrap">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" value="boi_thuong" class="law-tag-ck"> Bồi thường</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" value="ho_tro" class="law-tag-ck"> Hỗ trợ</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" value="tai_dinh_cu" class="law-tag-ck"> Tái định cư</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" value="gia_dat" class="law-tag-ck"> Giá đất</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" value="thu_hoi" class="law-tag-ck"> Thu hồi đất</label>
+                  </div>
+                </div>
+                <div class="form-group"><label class="fl">Link văn bản gốc</label><input class="fi" id="law_link" placeholder="https://..."></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="form-section">
+              <div class="fsec-title">📝 Nội dung / Tóm tắt điều khoản</div>
+              <textarea class="fi" id="law_content" rows="6" placeholder="Nhập tóm tắt nội dung hoặc paste toàn bộ điều khoản quan trọng...&#10;&#10;VD:&#10;Điều 95: Điều kiện bồi thường về đất...&#10;Điều 96: Các trường hợp không bồi thường..."></textarea>
+            </div>
+            <div class="form-section">
+              <div class="fsec-title">📎 Đính kèm file</div>
+              <div class="upload-zone" style="padding:20px" onclick="document.getElementById('law-file').click()">
+                <div class="upload-zone-icon" style="font-size:22px">📎</div>
+                <div class="upload-zone-text">Tải file PDF/Word văn bản gốc</div>
+              </div>
+              <input type="file" id="law-file" accept=".pdf,.doc,.docx" style="display:none">
+            </div>
+            <button class="btn btn-navy" style="width:100%;padding:10px" onclick="saveLaw()">💾 Lưu văn bản vào hệ thống</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="law-search">
+        <div class="law-search">
+          <input class="fi" id="law-article-search" placeholder="Nhập từ khóa: bồi thường, điều kiện, hỗ trợ, tái định cư..." style="flex:1" oninput="searchArticles(this.value)">
+        </div>
+        <div id="law-article-results"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ WORKFLOW 20 BƯỚC ═══════════════ -->
+    <div class="panel" id="panel-workflow">
+      <div class="info-box info-blue" style="margin-bottom:12px">📋 Quy trình 20 bước thu hồi đất, bồi thường, hỗ trợ, tái định cư theo QĐ của UBND TP.HCM. Click vào từng bước để cập nhật trạng thái.</div>
+      <div class="grid-2">
+        <div>
+          <div class="card-title">Tiến độ tổng thể</div>
+          <div class="stat-row" id="wf-stat-row" style="margin-bottom:8px">
+            <div class="stat-box"><div class="stat-num" id="wf-done-n" style="color:var(--green)">0</div><div class="stat-lbl">Hoàn thành</div></div>
+            <div class="stat-box"><div class="stat-num" id="wf-active-n" style="color:var(--blue)">1</div><div class="stat-lbl">Đang thực hiện</div></div>
+            <div class="stat-box"><div class="stat-num" id="wf-pending-n" style="color:var(--text3)">19</div><div class="stat-lbl">Chưa thực hiện</div></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Tiến độ hoàn thành</div>
+            <progress id="wf-progress" value="0" max="20"></progress>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;text-align:right" id="wf-pct">0%</div>
+          </div>
+        </div>
+        <div>
+          <div class="card-title">Lọc theo đơn vị thực hiện</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span class="chip" onclick="filterWf('all')">Tất cả</span>
+            <span class="chip" onclick="filterWf('UBND xa')">UBND xã/phường</span>
+            <span class="chip" onclick="filterWf('Quy dat')">Ban/Tổ chức GPMB</span>
+            <span class="chip" onclick="filterWf('UBND quan')">UBND quận/huyện</span>
+            <span class="chip" onclick="filterWf('TNMT')">Sở TN&MT</span>
+            <span class="chip" onclick="filterWf('Chu dau tu')">Chủ đầu tư</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px" class="wf-timeline" id="wf-container">
+        <div class="wf-line"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ BIỂU MẪU CHUẨN ═══════════════ -->
+    <div class="panel" id="panel-bieumau">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('bm','chon')">Chọn biểu mẫu</button>
+        <button class="tab-btn" onclick="switchTab('bm','upload')">Tải mẫu của tôi</button>
+        <button class="tab-btn" onclick="switchTab('bm','preview')">Xem trước & Xuất</button>
+      </div>
+      <div class="tab-pane active" id="bm-chon">
+        <div class="info-box info-gold">📄 Chọn mẫu văn bản phù hợp. Hệ thống sẽ tự động điền dữ liệu từ hồ sơ đã nhập vào biểu mẫu.</div>
+        <div class="tmpl-list" id="tmpl-grid"></div>
+      </div>
+      <div class="tab-pane" id="bm-upload">
+        <div class="info-box info-blue">📤 Tải lên biểu mẫu Word (.docx) hoặc văn bản (.txt) của bạn. Đặt các placeholder như <code style="background:var(--gray1);padding:1px 4px;border-radius:3px;font-family:var(--mono)">{{TEN_CHU}}</code>, <code style="background:var(--gray1);padding:1px 4px;border-radius:3px;font-family:var(--mono)">{{SO_THUA}}</code>... để hệ thống tự điền.</div>
+        <div class="upload-zone" onclick="document.getElementById('tmpl-file').click()">
+          <div class="upload-zone-icon">📝</div>
+          <div class="upload-zone-text">Tải lên biểu mẫu của bạn</div>
+          <div class="upload-zone-sub">Hỗ trợ: .txt, .docx (Word)</div>
+        </div>
+        <input type="file" id="tmpl-file" accept=".txt,.docx" style="display:none" onchange="uploadTemplate(this)">
+        <div class="card" style="margin-top:12px">
+          <div class="card-title">📌 Danh sách placeholder có thể dùng</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <div id="placeholder-list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="bm-preview">
+        <div id="bm-preview-area">
+          <div class="empty"><div class="empty-icon">📄</div><div class="empty-title">Chưa chọn biểu mẫu</div><div class="empty-sub">Chọn biểu mẫu ở tab "Chọn biểu mẫu" trước</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ KÝ SỐ PDF ═══════════════ -->
+    <div class="panel" id="panel-kyso">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('ks','setup')">Thông tin ký số</button>
+        <button class="tab-btn" onclick="switchTab('ks','preview')">Xem trước PDF</button>
+        <button class="tab-btn" onclick="switchTab('ks','export')">Xuất & Tải về</button>
+      </div>
+      <div class="tab-pane active" id="ks-setup">
+        <div class="grid-2" style="gap:12px">
+          <div>
+            <div class="card">
+              <div class="card-title">✍️ Chữ ký tay</div>
+              <div style="margin-bottom:8px">
+                <canvas id="sig-canvas" class="sig-canvas" width="500" height="120"></canvas>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-secondary btn-sm" onclick="clearSig()">🗑️ Xóa chữ ký</button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sig-upload').click()">📎 Upload ảnh chữ ký</button>
+                <input type="file" id="sig-upload" accept="image/*" style="display:none" onchange="uploadSig(this)">
+              </div>
+            </div>
+            <div class="card" style="margin-top:12px">
+              <div class="card-title">🔏 Thông tin con dấu</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="form-group"><label class="fl">Cơ quan ban hành</label><input class="fi" id="ks_coquan" placeholder="UBND Thành phố Hồ Chí Minh"></div>
+                <div class="form-group"><label class="fl">Người ký</label><input class="fi" id="ks_nguoiky" placeholder="Chủ tịch / Phó Chủ tịch UBND"></div>
+                <div class="form-group"><label class="fl">Chức danh</label><input class="fi" id="ks_chucdanh" placeholder="Phó Chủ tịch UBND TP.HCM"></div>
+                <div class="form-group"><label class="fl">Upload ảnh con dấu</label>
+                  <div class="upload-zone" style="padding:12px" onclick="document.getElementById('stamp-upload').click()">
+                    <div style="font-size:11px">📎 Kéo thả hoặc click để tải ảnh con dấu (PNG nền trong suốt)</div>
+                  </div>
+                  <input type="file" id="stamp-upload" accept="image/*" style="display:none" onchange="uploadStamp(this)">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title">📄 Chọn văn bản cần ký</div>
+              <div style="display:flex;flex-direction:column;gap:6px" id="ks-doc-list">
+                <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--gray2);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ks_doc" value="phuong_an" style="accent-color:var(--blue)"> Phương án bồi thường, hỗ trợ, TĐC</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--gray2);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ks_doc" value="quyet_dinh"> Quyết định phê duyệt phương án</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--gray2);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ks_doc" value="bien_ban"> Biên bản kiểm tra hồ sơ</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--gray2);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ks_doc" value="thong_bao"> Thông báo gửi hộ dân</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--gray2);border-radius:6px;cursor:pointer;font-size:12px"><input type="radio" name="ks_doc" value="toan_bo"> Xuất toàn bộ (4 văn bản)</label>
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:10px;padding:10px" onclick="switchTab('ks','preview');renderPdfPreview()">👁️ Xem trước PDF →</button>
+            </div>
+            <div class="card" style="margin-top:12px">
+              <div class="card-title">⚙️ Tùy chọn xuất</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="opt_header" checked style="accent-color:var(--blue)"> Thêm header tiêu đề cơ quan</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="opt_sig" checked style="accent-color:var(--blue)"> Thêm chữ ký vào văn bản</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="opt_stamp" style="accent-color:var(--blue)"> Thêm con dấu vào văn bản</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="opt_watermark" style="accent-color:var(--blue)"> Watermark "DỰ THẢO"</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="opt_barcode" style="accent-color:var(--blue)"> Thêm mã hồ sơ (barcode)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="ks-preview">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('ks','setup')">← Quay lại</button>
+          <button class="btn btn-gold" onclick="switchTab('ks','export')" style="margin-left:auto">Xuất PDF →</button>
+        </div>
+        <div class="pdf-preview" id="pdf-preview-content">
+          <div class="empty"><div class="empty-icon">📄</div><div class="empty-sub">Chọn văn bản và nhấn "Xem trước PDF"</div></div>
+        </div>
+      </div>
+      <div class="tab-pane" id="ks-export">
+        <div class="info-box info-green">✅ Văn bản đã sẵn sàng để xuất. Chọn định dạng phù hợp.</div>
+        <div class="grid-2" style="gap:10px">
+          <div class="card" style="cursor:pointer" onclick="downloadTxt()">
+            <div style="font-size:28px;margin-bottom:8px">📃</div>
+            <div style="font-weight:600;margin-bottom:4px">Tải về (.txt)</div>
+            <div style="font-size:11px;color:var(--text3)">File văn bản thuần – mở bằng Notepad, Word. Dùng để in và chỉnh sửa.</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="downloadHtmlDoc()">
+            <div style="font-size:28px;margin-bottom:8px">📄</div>
+            <div style="font-weight:600;margin-bottom:4px">Tải về (.html → Word)</div>
+            <div style="font-size:11px;color:var(--text3)">Mở bằng Word, giữ định dạng font, kích cỡ, căn lề. In trực tiếp được.</div>
+          </div>
+          <div class="card" style="cursor:pointer;grid-column:1/-1" onclick="downloadAllDocs()">
+            <div style="font-size:28px;margin-bottom:8px">📦</div>
+            <div style="font-weight:600;margin-bottom:4px">Xuất toàn bộ hồ sơ (ZIP)</div>
+            <div style="font-size:11px;color:var(--text3)">Đóng gói tất cả 4 văn bản vào file ZIP. Mỗi văn bản 1 file .txt và 1 file .html riêng.</div>
+          </div>
+        </div>
+        <div class="info-box info-amber" style="margin-top:12px">⚠️ Các văn bản xuất ra là đề xuất tự động. Cán bộ thẩm định cần kiểm tra, chỉnh sửa và ký trước khi trình lãnh đạo phê duyệt.</div>
+      </div>
+    </div>
+
+  </div><!-- panel-content -->
+</div><!-- main -->
+</div><!-- app -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-add-gia"><div class="modal">
+  <div class="modal-head"><div class="modal-icon">💰</div><div class="modal-title">Thêm / Sửa mức giá đất</div><button class="modal-close" onclick="closeModal('modal-add-gia')">✕</button></div>
+  <div class="modal-body">
+    <div class="grid-2" style="gap:8px">
+      <div class="form-group full"><label class="fl">Loại đất</label>
+        <select class="fi" id="ag_loai">
+          <option value="ONT">ONT – Đất ở nông thôn</option><option value="ODT">ODT – Đất ở đô thị</option>
+          <option value="LUC">LUC – Đất lúa nước</option><option value="CLN">CLN – Cây lâu năm</option>
+          <option value="NTS">NTS – Nuôi trồng thủy sản</option><option value="BHK">BHK – Cây hàng năm</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Vị trí</label>
+        <select class="fi" id="ag_vitri">
+          <option value="1">Vị trí 1 – Mặt đường lớn</option><option value="2">Vị trí 2</option>
+          <option value="3">Vị trí 3</option><option value="4">Vị trí 4</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Khu vực / Quận-Huyện</label><input class="fi" id="ag_kv" placeholder="VD: Quận 1, Bình Chánh..."></div>
+      <div class="form-group"><label class="fl">Đơn giá (đ/m²)<span class="req">*</span></label><input type="number" class="fi fi-mono" id="ag_gia" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="fl">Hệ số điều chỉnh K</label><input type="number" class="fi fi-mono" id="ag_heso" placeholder="1.0" step="0.01" min="0.1" max="10" value="1.0"></div>
+      <div class="form-group"><label class="fl">Ngày hiệu lực</label><input type="date" class="fi" id="ag_ngay"></div>
+      <div class="form-group full"><label class="fl">Quyết định căn cứ</label><input class="fi" id="ag_qd" placeholder="VD: QĐ 12/2024/QĐ-UBND ngày 01/01/2024"></div>
+      <div class="form-group full"><label class="fl">Ghi chú</label><input class="fi" id="ag_note" placeholder="Ghi chú thêm (nếu có)"></div>
+    </div>
+    <input type="hidden" id="ag_edit_idx" value="-1">
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-secondary" onclick="closeModal('modal-add-gia')">Hủy</button>
+    <button class="btn btn-primary" onclick="saveGia()">💾 Lưu mức giá</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="modal-law-view"><div class="modal modal-lg">
+  <div class="modal-head"><div class="modal-icon">⚖️</div><div class="modal-title" id="law-view-title">Xem văn bản</div><button class="modal-close" onclick="closeModal('modal-law-view')">✕</button></div>
+  <div class="modal-body">
+    <div id="law-view-meta" style="margin-bottom:14px"></div>
+    <div id="law-view-content" style="font-size:12px;line-height:1.8;color:var(--text);white-space:pre-wrap;background:var(--gray0);border:1px solid var(--gray2);border-radius:var(--radius);padding:14px;max-height:400px;overflow-y:auto;font-family:var(--font)"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-secondary" onclick="closeModal('modal-law-view')">Đóng</button>
+    <button class="btn btn-primary" onclick="copyLawContent()">📋 Sao chép nội dung</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="modal-wf-step"><div class="modal">
+  <div class="modal-head"><div class="modal-icon">🔄</div><div class="modal-title" id="wf-modal-title">Cập nhật bước</div><button class="modal-close" onclick="closeModal('modal-wf-step')">✕</button></div>
+  <div class="modal-body">
+    <div id="wf-modal-body"></div>
+    <div class="form-group" style="margin-top:12px"><label class="fl">Trạng thái</label>
+      <select class="fi" id="wf_status_sel">
+        <option value="pending">Chưa thực hiện</option>
+        <option value="active">Đang thực hiện</option>
+        <option value="done">Hoàn thành</option>
+        <option value="blocked">Bị chặn / Vướng mắc</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-top:8px"><label class="fl">Ngày thực hiện</label><input type="date" class="fi" id="wf_date_inp"></div>
+    <div class="form-group" style="margin-top:8px"><label class="fl">Ghi chú / Vấn đề phát sinh</label><textarea class="fi" id="wf_note_inp" rows="3" placeholder="Nhập ghi chú hoặc vướng mắc..."></textarea></div>
+    <input type="hidden" id="wf_step_idx">
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-secondary" onclick="closeModal('modal-wf-step')">Hủy</button>
+    <button class="btn btn-primary" onclick="saveWfStep()">💾 Cập nhật</button>
+  </div>
+</div></div>
 
 <script>
-// ===== STATE =====
-var R = null; // calcResult
-var assets = [];
-var aid = 0;
-var modalText = '';
-var modalTitle = '';
+// ═══════════════════════════════════════════════════
+// STATE & STORAGE
+// ═══════════════════════════════════════════════════
+var STATE = {
+  hoSo: null,
+  calcResult: null,
+  assets: [],
+  assetId: 0,
+  giaData: [],
+  hesoData: [],
+  laws: [],
+  wfSteps: [],
+  templates: [],
+  sigData: null,
+  stampData: null
+};
 
-// ===== HELPERS =====
-function g(id){return document.getElementById(id)}
-function vn(n){return Math.round(n).toLocaleString('vi-VN')+' đồng'}
-function vn2(n){return Math.round(n).toLocaleString('vi-VN')}
-function today(){
-  var d=new Date();
-  return 'ngày '+d.getDate()+' tháng '+(d.getMonth()+1)+' năm '+d.getFullYear();
-}
-function fdate(str){
-  if(!str)return '(chưa nhập)';
-  var p=str.split('-');return p[2]+'/'+p[1]+'/'+p[0];
+function save(key, val) { try { localStorage.setItem('btdd_' + key, JSON.stringify(val)); } catch(e){} }
+function load(key, def) { try { var v = localStorage.getItem('btdd_' + key); return v ? JSON.parse(v) : def; } catch(e){ return def; } }
+
+function initState() {
+  STATE.giaData = load('gia', getDefaultGia());
+  STATE.hesoData = load('heso', getDefaultHeSo());
+  STATE.laws = load('laws', getDefaultLaws());
+  STATE.wfSteps = load('wf', getDefaultWf());
+  STATE.templates = load('templates', getDefaultTemplates());
+  STATE.hoSo = load('hosoCurrent', null);
+  STATE.calcResult = load('calcResult', null);
 }
 
-// ===== NAV =====
-var phTitles={nhap:'Nhập thông tin hồ sơ',ketqua:'Kết quả phương án tính toán',audit:'Kiểm tra sai sót & thiếu hồ sơ',export:'Xuất hồ sơ phương án bồi thường'};
-var phSubs={nhap:'Điền đầy đủ thông tin để tính phương án bồi thường',ketqua:'Kết quả theo Luật Đất đai 2024 và NĐ 88/2024/NĐ-CP',audit:'Phát hiện lỗi pháp lý, thiếu thông tin, bất hợp lý',export:'Xuất văn bản pháp lý – tải về máy tính không cần internet'};
-function show(name){
+// ═══════════════════════════════════════════════════
+// DEFAULT DATA
+// ═══════════════════════════════════════════════════
+function getDefaultGia() {
+  return [
+    {loai:'ONT',ma:'ONT',vitri:'1',kv:'Quận 1',gia:180000000,heso:1.5,ngay:'2024-08-01',qd:'QĐ 12/2024/QĐ-UBND-TP',note:'Mặt đường lớn Q1'},
+    {loai:'ONT',ma:'ONT',vitri:'2',kv:'Quận 1',gia:120000000,heso:1.3,ngay:'2024-08-01',qd:'QĐ 12/2024/QĐ-UBND-TP',note:''},
+    {loai:'ONT',ma:'ONT',vitri:'1',kv:'Bình Chánh',gia:22000000,heso:1.2,ngay:'2024-08-01',qd:'QĐ 12/2024/QĐ-UBND-TP',note:''},
+    {loai:'ODT',ma:'ODT',vitri:'1',kv:'Quận 3',gia:150000000,heso:1.4,ngay:'2024-08-01',qd:'QĐ 12/2024/QĐ-UBND-TP',note:''},
+    {loai:'LUC',ma:'LUC',vitri:'1',kv:'Bình Chánh',gia:2800000,heso:1.0,ngay:'2024-08-01',qd:'QĐ 12/2024/QĐ-UBND-TP',note:''},
+    {loai:'CLN',ma:'CLN',vitri:'1',kv:'Hóc Môn',gia:2200000,heso:1.0,ngay:'2024-08-01',qd:'QĐ 12/2024/QĐ-UBND-TP',note:''},
+  ];
+}
+function getDefaultHeSo(){
+  return [
+    {loai:'ONT',nam:'2024',quan:'Quận 1',heso:'1.50',qd:'QĐ 5516/QĐ-UBND'},
+    {loai:'ONT',nam:'2024',quan:'Bình Chánh',heso:'1.20',qd:'QĐ 5516/QĐ-UBND'},
+    {loai:'LUC',nam:'2024',quan:'Bình Chánh',heso:'1.00',qd:'QĐ 5516/QĐ-UBND'},
+  ];
+}
+function getDefaultLaws(){
+  return [
+    {type:'luat',code:'LĐĐ 2024',name:'Luật Đất đai 2024',date:'2024-01-18',effective:'2024-08-01',org:'Quốc hội',status:'hieu_luc',tags:['boi_thuong','ho_tro','tai_dinh_cu','gia_dat','thu_hoi'],link:'https://luatvietnam.vn',content:`Điều 86. Tổ chức thực hiện bồi thường, hỗ trợ, tái định cư
+Việc bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất phải được thực hiện trước khi có quyết định thu hồi đất.
+
+Điều 95. Điều kiện được bồi thường về đất khi Nhà nước thu hồi đất
+1. Người sử dụng đất có Giấy chứng nhận quyền sử dụng đất, quyền sở hữu nhà ở và tài sản khác gắn liền với đất.
+2. Người sử dụng đất đủ điều kiện được cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu nhà ở và tài sản khác gắn liền với đất theo quy định của Luật này nhưng chưa được cấp.
+
+Điều 96. Các trường hợp không được bồi thường về đất khi Nhà nước thu hồi đất
+Người sử dụng đất không đủ điều kiện được bồi thường về đất theo quy định tại Điều 95 của Luật này thì không được bồi thường về đất; trường hợp đất đang sử dụng vi phạm pháp luật về đất đai thì không được bồi thường về đất và tài sản gắn liền với đất.
+
+Điều 108. Hỗ trợ ổn định đời sống và sản xuất khi Nhà nước thu hồi đất
+Hộ gia đình, cá nhân trực tiếp sản xuất nông nghiệp khi Nhà nước thu hồi đất nông nghiệp mà không có đất để bồi thường thì được hỗ trợ ổn định đời sống.
+
+Điều 109. Hỗ trợ đào tạo, chuyển đổi nghề và tìm kiếm việc làm
+Hộ gia đình, cá nhân trực tiếp sản xuất nông nghiệp khi Nhà nước thu hồi đất nông nghiệp được hỗ trợ đào tạo, chuyển đổi nghề và tìm kiếm việc làm.
+
+Điều 111. Tái định cư đối với trường hợp Nhà nước thu hồi đất ở
+Người sử dụng đất ở bị thu hồi đất phải di chuyển chỗ ở được Nhà nước bố trí tái định cư.`},
+    {type:'nghi_dinh',code:'NĐ 88/2024',name:'Nghị định 88/2024/NĐ-CP về bồi thường, hỗ trợ, tái định cư',date:'2024-07-15',effective:'2024-08-01',org:'Chính phủ',status:'hieu_luc',tags:['boi_thuong','ho_tro','tai_dinh_cu'],link:'',content:`Quy định chi tiết về bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất theo Luật Đất đai 2024.
+
+Điều 5. Nguyên tắc bồi thường về đất
+Việc bồi thường về đất được thực hiện bằng đất có cùng mục đích sử dụng với loại đất bị thu hồi; trường hợp không có đất để bồi thường thì được bồi thường bằng tiền theo giá đất cụ thể.
+
+Điều 16. Tính tiền bồi thường về đất
+Tiền bồi thường về đất được tính theo diện tích đất thực tế bị thu hồi, loại đất, vị trí đất và giá đất cụ thể do UBND cấp tỉnh quyết định tại thời điểm quyết định thu hồi đất.`},
+    {type:'quyet_dinh',code:'QĐ 5516',name:'QĐ 5516/QĐ-UBND TP.HCM về hỗ trợ bổ sung',date:'2024-01-10',effective:'2024-01-10',org:'UBND TP.HCM',status:'hieu_luc',tags:['ho_tro','boi_thuong'],link:'',content:`Quy định cụ thể mức hỗ trợ bổ sung của UBND Thành phố Hồ Chí Minh áp dụng cho các hộ đặc thù khi bị thu hồi đất trên địa bàn thành phố.
+
+Mức hỗ trợ bổ sung:
+- Hộ chính sách / nghèo: 10% giá trị bồi thường đất, tối thiểu 5.000.000 đồng
+- Hộ di chuyển chỗ ở: 5.000.000 đồng
+- Hộ đào tạo nghề: 3.000.000 đồng/tháng, tối đa 6 tháng`},
+  ];
+}
+function getDefaultWf(){
+  var steps=[
+    {num:1,title:'Thông báo thu hồi đất',dept:'UBND quan',desc:'UBND cấp có thẩm quyền ban hành thông báo thu hồi đất theo quy hoạch, kế hoạch đã phê duyệt. Thông báo phải được niêm yết công khai tại UBND xã/phường và gửi đến từng hộ gia đình.',status:'pending',date:'',note:''},
+    {num:2,title:'Điều tra khảo sát thực địa',dept:'Quy dat',desc:'Tổ chức làm nhiệm vụ bồi thường tiến hành điều tra khảo sát hiện trạng, đo đạc diện tích đất, tài sản trên đất bị thu hồi.',status:'pending',date:'',note:''},
+    {num:3,title:'Kiểm đếm tài sản',dept:'Quy dat',desc:'Lập biên bản kiểm đếm tài sản gắn liền với đất (nhà, cây cối, công trình). Chủ sử dụng đất phải ký xác nhận biên bản kiểm đếm.',status:'pending',date:'',note:''},
+    {num:4,title:'Xác định nguồn gốc pháp lý đất',dept:'TNMT',desc:'Sở Tài nguyên và Môi trường xác minh nguồn gốc, pháp lý sử dụng đất; xác định điều kiện bồi thường theo Điều 95, 96 LĐĐ 2024.',status:'pending',date:'',note:''},
+    {num:5,title:'Xác định giá đất cụ thể',dept:'UBND quan',desc:'UBND cấp tỉnh/thành phố quyết định giá đất cụ thể làm căn cứ tính bồi thường tại thời điểm ban hành QĐ thu hồi.',status:'pending',date:'',note:''},
+    {num:6,title:'Lập phương án bồi thường sơ bộ',dept:'Quy dat',desc:'Tổ chức GPMB lập phương án bồi thường, hỗ trợ, TĐC sơ bộ cho từng hộ gia đình/cá nhân bị ảnh hưởng.',status:'pending',date:'',note:''},
+    {num:7,title:'Lấy ý kiến hộ dân về phương án',dept:'UBND xa',desc:'Tổ chức họp lấy ý kiến của các hộ gia đình về phương án bồi thường. Niêm yết công khai trong ít nhất 20 ngày.',status:'pending',date:'',note:''},
+    {num:8,title:'Tiếp nhận & giải quyết ý kiến',dept:'Quy dat',desc:'Tổng hợp ý kiến phản hồi từ hộ dân, giải trình các vấn đề vướng mắc, điều chỉnh phương án nếu cần thiết.',status:'pending',date:'',note:''},
+    {num:9,title:'Hoàn thiện phương án bồi thường',dept:'Quy dat',desc:'Hoàn chỉnh phương án bồi thường, hỗ trợ, TĐC theo các điều chỉnh sau lấy ý kiến. Tổng hợp toàn bộ hồ sơ.',status:'pending',date:'',note:''},
+    {num:10,title:'Thẩm định phương án',dept:'TNMT',desc:'Sở TN&MT hoặc đơn vị được ủy quyền thẩm định phương án bồi thường theo quy định của LĐĐ 2024 và NĐ 88/2024.',status:'pending',date:'',note:''},
+    {num:11,title:'Trình UBND phê duyệt',dept:'Quy dat',desc:'Trình UBND cấp có thẩm quyền xem xét, ký ban hành Quyết định phê duyệt phương án bồi thường, hỗ trợ, TĐC.',status:'pending',date:'',note:''},
+    {num:12,title:'Ban hành Quyết định phê duyệt',dept:'UBND quan',desc:'UBND cấp có thẩm quyền ban hành Quyết định phê duyệt phương án bồi thường theo đúng thẩm quyền tại Điều 86 LĐĐ 2024.',status:'pending',date:'',note:''},
+    {num:13,title:'Thông báo phương án đến hộ dân',dept:'UBND xa',desc:'Gửi thông báo phương án bồi thường chính thức đến từng hộ gia đình/cá nhân bị thu hồi đất. Niêm yết công khai.',status:'pending',date:'',note:''},
+    {num:14,title:'Chi trả bồi thường, hỗ trợ',dept:'Quy dat',desc:'Tổ chức chi trả tiền bồi thường, hỗ trợ cho các hộ đủ điều kiện. Lập biên bản chi trả và thu nhận biên lai.',status:'pending',date:'',note:''},
+    {num:15,title:'Bố trí tái định cư',dept:'UBND quan',desc:'Bố trí suất tái định cư cho các hộ phải di chuyển chỗ ở. Ký hợp đồng mua/thuê nhà TĐC hoặc giao đất TĐC.',status:'pending',date:'',note:''},
+    {num:16,title:'Vận động bàn giao mặt bằng',dept:'UBND xa',desc:'Vận động thuyết phục hộ dân bàn giao mặt bằng sau khi đã nhận đủ tiền bồi thường, hỗ trợ.',status:'pending',date:'',note:''},
+    {num:17,title:'Cưỡng chế (nếu cần)',dept:'UBND quan',desc:'Trường hợp hộ không bàn giao sau thời hạn, UBND thực hiện cưỡng chế bàn giao mặt bằng theo quy định pháp luật.',status:'pending',date:'',note:''},
+    {num:18,title:'Ban hành Quyết định thu hồi đất',dept:'UBND quan',desc:'Sau khi đã hoàn thành chi trả và bàn giao mặt bằng, UBND ban hành Quyết định thu hồi đất chính thức.',status:'pending',date:'',note:''},
+    {num:19,title:'Bàn giao mặt bằng cho chủ đầu tư',dept:'Quy dat',desc:'Bàn giao mặt bằng sạch cho chủ đầu tư dự án để triển khai thi công. Lập biên bản bàn giao.',status:'pending',date:'',note:''},
+    {num:20,title:'Lưu trữ hồ sơ & báo cáo tổng kết',dept:'TNMT',desc:'Lưu trữ toàn bộ hồ sơ bồi thường theo quy định. Báo cáo tổng kết kết quả bồi thường, giải phóng mặt bằng dự án.',status:'pending',date:'',note:''},
+  ];
+  return steps;
+}
+function getDefaultTemplates(){
+  return [
+    {id:'phuong_an',name:'Phương án bồi thường, hỗ trợ, TĐC',desc:'Biểu mẫu đầy đủ thông tin hộ, đất, tài sản, số tiền từng khoản',icon:'📝',tags:['bắt buộc'],custom:false},
+    {id:'quyet_dinh',name:'Quyết định phê duyệt phương án',desc:'Dự thảo QĐ theo thể thức văn bản hành chính nhà nước',icon:'📜',tags:['bắt buộc'],custom:false},
+    {id:'bien_ban_kt',name:'Biên bản kiểm tra hồ sơ',desc:'Kết quả kiểm tra pháp lý, sai sót, cảnh báo',icon:'✅',tags:['thẩm định'],custom:false},
+    {id:'thong_bao',name:'Thông báo gửi hộ dân',desc:'Thông báo phương án BT gửi chủ sử dụng đất',icon:'📬',tags:['hộ dân'],custom:false},
+    {id:'bien_ban_ke',name:'Biên bản kiểm đếm hiện trạng',desc:'Biên bản kiểm đếm tài sản tại thực địa',icon:'🔍',tags:['thực địa'],custom:false},
+    {id:'bb_giaonhan',name:'Biên bản giao nhận tiền bồi thường',desc:'Biên bản chi trả tiền bồi thường, hỗ trợ',icon:'💵',tags:['thanh toán'],custom:false},
+  ];
+}
+
+// Placeholders mapping
+var PLACEHOLDERS = {
+  '{{TEN_CHU}}':'Họ tên chủ sử dụng','{{CCCD}}':'Số CCCD/CMND','{{DIA_CHI}}':'Địa chỉ thường trú',
+  '{{SO_THUA}}':'Số thửa đất','{{SO_TO}}':'Số tờ bản đồ','{{LOAI_DAT}}':'Loại đất',
+  '{{DIEN_TICH}}':'Diện tích GCN (m²)','{{DIEN_TICH_TH}}':'Diện tích thu hồi (m²)',
+  '{{GIA_DAT}}':'Giá đất (đ/m²)','{{BT_DAT}}':'Tiền BT đất','{{BT_TS}}':'Tiền BT tài sản',
+  '{{TONG_HO_TRO}}':'Tổng hỗ trợ','{{TONG_CONG}}':'Tổng cộng',
+  '{{TEN_DU_AN}}':'Tên dự án','{{SO_QD}}':'Số QĐ thu hồi','{{NGAY_QD}}':'Ngày ký QĐ',
+  '{{CO_QUAN}}':'Cơ quan ban hành','{{CAN_BO}}':'Cán bộ thẩm định',
+  '{{NGAY_HOM_NAY}}':'Ngày soạn thảo','{{GCN}}':'Tình trạng GCN',
+};
+
+// ═══════════════════════════════════════════════════
+// NAV & PANELS
+// ═══════════════════════════════════════════════════
+var panelMeta = {
+  dashboard:{title:'Dashboard – Tổng quan hệ thống',sub:'Dữ liệu tổng hợp toàn bộ hồ sơ'},
+  nhap:{title:'Nhập thông tin hồ sơ',sub:'Điền đầy đủ để tính phương án bồi thường'},
+  tinh:{title:'Tính toán bồi thường – Rule Engine LĐĐ 2024',sub:'Kết quả tự động theo luật hiện hành'},
+  audit:{title:'Kiểm tra sai sót & Thiếu hồ sơ',sub:'Phát hiện lỗi pháp lý, thiếu thông tin'},
+  gis:{title:'Bản đồ GIS – Quản lý thửa đất',sub:'Hiển thị GeoJSON, SHP, tọa độ thửa đất'},
+  giadata:{title:'CSDL Giá đất & Hệ số điều chỉnh',sub:'Quản lý bảng giá đất theo quyết định UBND'},
+  law:{title:'Nguồn luật – Văn bản pháp lý',sub:'Cập nhật và tra cứu LĐĐ 2024, NĐ, QĐ'},
+  workflow:{title:'Quy trình 20 bước GPMB',sub:'Theo dõi tiến độ thu hồi đất, bồi thường, TĐC'},
+  bieumau:{title:'Biểu mẫu chuẩn – Template văn bản',sub:'Soạn thảo tự động từ hồ sơ đã nhập'},
+  kyso:{title:'Ký số & Xuất PDF',sub:'Thêm chữ ký, con dấu và xuất hồ sơ'},
+};
+
+function showPanel(name, btn) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  g('panel-'+name).classList.add('active');
-  g('nav-'+name).classList.add('active');
-  g('ph-title').textContent=phTitles[name];
-  g('ph-sub').textContent=phSubs[name];
-  if(name==='export'){
-    if(!R){g('export-need-calc').style.display='block';g('export-main').style.display='none';}
-    else{g('export-need-calc').style.display='none';g('export-main').style.display='block';}
-  }
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  else { var nb=document.querySelector('[data-panel="'+name+'"]'); if(nb) nb.classList.add('active'); }
+  var m=panelMeta[name]||{title:name,sub:''};
+  document.getElementById('panel-title').textContent=m.title;
+  document.getElementById('panel-sub').textContent=m.sub;
+  if(name==='gis' && !gisMap) initMap();
+  if(name==='dashboard') updateDashboard();
+  if(name==='workflow') renderWorkflow();
+  if(name==='law') renderLawList('');
+  if(name==='giadata') renderGia();
+  if(name==='bieumau') renderTemplates();
+  if(name==='kyso') initSigCanvas();
 }
 
-// ===== ASSETS =====
-var loaiTS=['Nhà BTCT khung cột','Nhà tường gạch mái ngói/tôn','Nhà cấp 4 mái bằng','Nhà gỗ / nhà tạm','Cây lâu năm (cà phê, cao su, sầu riêng…)','Cây hàng năm (lúa, rau…)','Công trình phụ (bếp, nhà vệ sinh…)','Tường rào','Hố ga, giếng, bể nước'];
-function addAsset(){
-  var id=aid++;
-  assets.push(id);
-  var d=document.createElement('div');
-  d.className='asset-card';d.id='ac-'+id;
-  var opts=loaiTS.map(t=>'<option>'+t+'</option>').join('');
-  d.innerHTML='<div class="asset-card-grid">'+
-    '<div><div class="asset-lbl">Loại tài sản</div><select class="asset-inp" id="at-'+id+'">'+opts+'</select></div>'+
-    '<div><div class="asset-lbl">Diện tích (m²)</div><input type="number" class="asset-inp" id="adt-'+id+'" placeholder="0" min="0"></div>'+
-    '<div><div class="asset-lbl">Đơn giá (đ/m²)</div><input type="number" class="asset-inp" id="adn-'+id+'" placeholder="0" min="0"></div>'+
-    '<button class="btn-rm" onclick="rmAsset('+id+')" title="Xóa tài sản">×</button></div>';
-  g('asset-list').appendChild(d);
+function filterNav(q) {
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    var t=(b.querySelector('.nav-label')||{}).textContent||'';
+    b.style.display=(!q||t.toLowerCase().includes(q.toLowerCase()))?'':'none';
+  });
 }
-function rmAsset(id){var e=g('ac-'+id);if(e)e.remove();assets=assets.filter(a=>a!==id)}
 
-// ===== CALCULATE =====
-var loaiLabels={ONT:'Đất ở tại nông thôn (ONT)',ODT:'Đất ở tại đô thị (ODT)',LUC:'Đất trồng lúa nước (LUC)',CLN:'Đất cây lâu năm (CLN)',NTS:'Đất nuôi trồng thủy sản (NTS)',BHK:'Đất bằng trồng cây hàng năm (BHK)',RSX:'Đất rừng sản xuất (RSX)',SKC:'Đất sản xuất kinh doanh (SKC)',TMD:'Đất thương mại dịch vụ (TMD)'};
-var nguonLabels={nn_giao:'Nhà nước giao có thu tiền',nn_giao_khong:'Nhà nước giao không thu tiền',chuyen_nhuong:'Nhận chuyển nhượng hợp pháp',thua_ke:'Thừa kế hợp pháp',tu_khai_pha:'Tự khai phá, sử dụng lâu dài'};
-var gcnLabels={co:'Có Giấy chứng nhận QSDĐ',du_dk:'Chưa có GCN nhưng đủ điều kiện cấp',khong:'Không có GCN, không đủ điều kiện'};
-var thoiLabels={truoc_1993:'Trước 15/10/1993','1993_2004':'Từ 15/10/1993 đến 01/7/2004',sau_2004:'Sau 01/7/2004'};
+// ═══════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════
+function switchTab(group, id) {
+  document.querySelectorAll('#panel-'+group+' .tab-btn, #panel-bieumau .tab-btn, #panel-giadata .tab-btn, #panel-law .tab-btn, #panel-kyso .tab-btn').forEach(b=>{
+    if(b.closest('.panel').id==='panel-'+group||b.closest('.panel').id==='panel-bieumau'||b.closest('.panel').id==='panel-giadata'||b.closest('.panel').id==='panel-law'||b.closest('.panel').id==='panel-kyso') b.classList.remove('active');
+  });
+  var allBtns=document.querySelectorAll('#panel-'+group+' .tab-btn, [id^="panel-"] .tab-btn');
+  document.querySelectorAll('#'+group+'-'+id).forEach(p=>{p.classList.add('active')});
+  document.querySelectorAll('[id^="'+group+'-"]').forEach(p=>{if(p.id!==group+'-'+id) p.classList.remove('active')});
+  // find the clicked button
+  event&&event.target&&event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+// ASSETS (nhập hồ sơ)
+// ═══════════════════════════════════════════════════
+var ASSET_TYPES=['Nhà BTCT khung cột','Nhà tường gạch mái ngói/tôn','Nhà cấp 4 mái bằng','Nhà gỗ/nhà tạm','Cây lâu năm (cà phê, cao su...)','Cây hàng năm (lúa, rau...)','Công trình phụ (bếp, WC...)','Tường rào, hàng rào','Hố ga, giếng, bể nước'];
+
+function addAssetNhap(){
+  var id=STATE.assetId++;
+  STATE.assets.push(id);
+  var opts=ASSET_TYPES.map(t=>'<option>'+t+'</option>').join('');
+  var div=document.createElement('div');
+  div.id='arow-'+id;
+  div.style='display:grid;grid-template-columns:1.4fr 80px 110px 32px;gap:6px;margin-bottom:6px;align-items:end;background:var(--gray0);border:1px solid var(--gray2);border-radius:var(--radius);padding:8px';
+  div.innerHTML='<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Loại tài sản</div><select class="fi" id="ats-'+id+'" style="font-size:12px;padding:5px 8px">'+opts+'</select></div>'+
+    '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">DT (m²)</div><input type="number" class="fi fi-mono" id="adt-'+id+'" placeholder="0" min="0" style="font-size:12px;padding:5px 8px"></div>'+
+    '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Đơn giá (đ/m²)</div><input type="number" class="fi fi-mono" id="adn-'+id+'" placeholder="0" min="0" style="font-size:12px;padding:5px 8px"></div>'+
+    '<button style="background:none;border:none;color:var(--red);font-size:20px;cursor:pointer;height:34px" onclick="rmAsset('+id+')">×</button>';
+  document.getElementById('asset-list-nhap').appendChild(div);
+}
+function rmAsset(id){var e=document.getElementById('arow-'+id);if(e)e.remove();STATE.assets=STATE.assets.filter(a=>a!==id)}
+
+// ═══════════════════════════════════════════════════
+// AUTO-FILL GIÁ
+// ═══════════════════════════════════════════════════
+function autoFillGia(){
+  var loai=g('n_loai').value, vt=g('n_vitri').value;
+  var found=STATE.giaData.find(d=>d.ma===loai && d.vitri===vt);
+  if(found){ g('n_gia').value=found.gia; g('n_gia').style.background='var(--green-light)'; }
+  else { g('n_gia').style.background=''; }
+}
+
+// ═══════════════════════════════════════════════════
+// SAVE HỒ SƠ
+// ═══════════════════════════════════════════════════
+function getFormData(){
+  var assets=STATE.assets.map(id=>{
+    var el=document.getElementById('arow-'+id);
+    if(!el)return null;
+    var loai=g('ats-'+id)?g('ats-'+id).value:'';
+    var dt=parseFloat((g('adt-'+id)||{}).value)||0;
+    var dn=parseFloat((g('adn-'+id)||{}).value)||0;
+    return {loai,dt,dn,tien:dt*dn};
+  }).filter(Boolean);
+  return {
+    chu:g('n_chu').value||'(Chưa nhập)',cccd:g('n_cccd').value,sdt:g('n_sdt').value,
+    diachi:g('n_diachi').value,thua:g('n_thua').value,to:g('n_to').value,
+    loai:g('n_loai').value,vitri:g('n_vitri').value,
+    dt:parseFloat(g('n_dt').value)||0,dtth:parseFloat(g('n_dtth').value)||0,
+    gia:parseFloat(g('n_gia').value)||0,
+    gcn:g('n_gcn').value,nguongoc:g('n_nguongoc').value,
+    thoidiem:g('n_thoidiem').value,tinhTrang:g('n_tinhTrang').value,
+    ck_dc:g('ck_dc').checked,ck_cs:g('ck_cs').checked,
+    ck_nn:g('ck_nn').checked,ck_tdc:g('ck_tdc').checked,
+    duan:g('n_duan').value,soqd:g('n_soqd').value,ngayqd:g('n_ngayqd').value,
+    canbo:g('n_canbo').value,assets
+  };
+}
+function saveHoSo(){
+  STATE.hoSo=getFormData();
+  save('hosoCurrent',STATE.hoSo);
+  updateDashboard();
+  showNotify('✅ Đã lưu hồ sơ thành công!','green');
+}
+function saveAndCalc(){
+  saveHoSo();
+  calculate();
+  showPanel('tinh',null);
+}
+function showNotify(msg,color){
+  var n=document.createElement('div');
+  n.style='position:fixed;bottom:20px;right:20px;background:'+(color==='green'?'var(--green)':'var(--red)')+';color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;box-shadow:var(--shadow-lg)';
+  n.textContent=msg;document.body.appendChild(n);
+  setTimeout(()=>n.remove(),2500);
+}
+
+// ═══════════════════════════════════════════════════
+// CALCULATE – RULE ENGINE
+// ═══════════════════════════════════════════════════
+var LOAI_LABELS={ONT:'Đất ở nông thôn (ONT)',ODT:'Đất ở đô thị (ODT)',LUC:'Đất trồng lúa nước (LUC)',CLN:'Đất cây lâu năm (CLN)',NTS:'Nuôi trồng thủy sản (NTS)',BHK:'Cây hàng năm (BHK)',RSX:'Rừng sản xuất (RSX)',SKC:'Sản xuất kinh doanh (SKC)',TMD:'Thương mại dịch vụ (TMD)'};
+var NGUON_LABELS={nn_giao:'Nhà nước giao có thu tiền',nn_giao_k:'Nhà nước giao không thu tiền',mua:'Nhận chuyển nhượng hợp pháp',thua_ke:'Thừa kế hợp pháp',khai_pha:'Tự khai phá'};
+var GCN_LABELS={co:'Có GCN (Sổ đỏ/Sổ hồng)',du_dk:'Chưa có GCN, đủ điều kiện cấp',khong:'Không có GCN, không đủ điều kiện'};
 
 function calculate(){
-  var loai=g('loai_dat').value;
-  var dt=parseFloat(g('dien_tich').value)||0;
-  var dtTH=parseFloat(g('dien_tich_thu_hoi').value)||0;
-  var gia=parseFloat(g('gia_dat').value)||0;
-  var gcn=g('co_gcn').value;
-  var tt=g('tinh_trang').value;
-  var nguon=g('nguon_goc').value;
-  var thoi=g('thoi_diem').value;
-  var ck_dc=g('ck_di_chuyen').checked;
-  var ck_cs=g('ck_chinh_sach').checked;
-  var ck_nn=g('ck_nn').checked;
-  var ck_tdc=g('ck_tdc_san').checked;
+  var d=STATE.hoSo; if(!d){showNotify('Vui lòng lưu hồ sơ trước!','red');return;}
+  var dtHL=Math.min(d.dtth,d.dt);
+  var tyLe=d.dt>0?dtHL/d.dt:0;
+  var isO=['ONT','ODT'].includes(d.loai);
+  var isNN=['LUC','CLN','NTS','BHK','RSX'].includes(d.loai);
 
-  var dtHL=Math.min(dtTH,dt); // không vượt tổng diện tích
+  // Tìm hệ số điều chỉnh
+  var foundGia=STATE.giaData.find(g=>g.ma===d.loai&&g.vitri===d.vitri);
+  var hesoK=foundGia?parseFloat(foundGia.heso)||1:1;
 
-  // === RULE ENGINE – Điều kiện bồi thường đất ===
-  var du_bt=false, ly_do='';
-  if(tt==='vi_pham'){
-    du_bt=false;
-    ly_do='Đất đang bị vi phạm pháp luật đất đai – KHÔNG đủ điều kiện bồi thường về đất (căn cứ Điều 95 Luật Đất đai 2024). Chỉ được xem xét hỗ trợ.';
-  } else if(gcn==='co'){
-    du_bt=true;
-    ly_do='Có Giấy chứng nhận quyền sử dụng đất hợp lệ → Đủ điều kiện bồi thường (Điều 95 khoản 1 LĐĐ 2024).';
-  } else if(gcn==='du_dk'){
-    du_bt=true;
-    ly_do='Chưa có GCN nhưng đủ điều kiện được cấp → Đủ điều kiện bồi thường (Điều 95 khoản 2 LĐĐ 2024).';
+  // Điều kiện bồi thường đất (Điều 95, 96 LĐĐ 2024)
+  var duBT=false, lyDo='';
+  if(d.tinhTrang==='vi_pham'){
+    duBT=false; lyDo='Đất đang vi phạm pháp luật đất đai – KHÔNG đủ điều kiện bồi thường về đất (Điều 95 LĐĐ 2024). Chỉ xem xét hỗ trợ.';
+  } else if(d.gcn==='co'){
+    duBT=true; lyDo='Có Giấy chứng nhận QSDĐ hợp lệ → Đủ điều kiện bồi thường (Điều 95.1 LĐĐ 2024).';
+  } else if(d.gcn==='du_dk'){
+    duBT=true; lyDo='Chưa có GCN nhưng đủ điều kiện được cấp → Đủ điều kiện bồi thường (Điều 95.2 LĐĐ 2024).';
   } else {
-    du_bt=false;
-    ly_do='Không có GCN, không đủ điều kiện cấp GCN → KHÔNG đủ điều kiện bồi thường về đất. Chỉ được xem xét hỗ trợ (Điều 96 LĐĐ 2024).';
+    duBT=false; lyDo='Không có GCN, không đủ điều kiện → KHÔNG được bồi thường đất. Chỉ xem xét hỗ trợ (Điều 96 LĐĐ 2024).';
   }
 
-  // Bồi thường đất
-  var bt_dat=du_bt ? dtHL*gia : 0;
+  var giaThuc = d.gia * hesoK;
+  var btDat=duBT ? dtHL*giaThuc : 0;
+  var btTs=d.assets.reduce((s,a)=>s+a.tien,0);
 
-  // Bồi thường tài sản
-  var bt_ts=0, asset_rows=[];
-  assets.forEach(id=>{
-    if(!g('ac-'+id))return;
-    var loai_ts=g('at-'+id)?g('at-'+id).value:'';
-    var dts=parseFloat((g('adt-'+id)||{}).value)||0;
-    var dns=parseFloat((g('adn-'+id)||{}).value)||0;
-    var tien=dts*dns;
-    bt_ts+=tien;
-    asset_rows.push({loai:loai_ts,dt:dts,dn:dns,tien});
-  });
-
-  // Hỗ trợ (Điều 108, 109, 110 LĐĐ 2024)
+  // Hỗ trợ (Điều 108, 109, 110, 111 LĐĐ 2024 & QĐ 5516)
   var ht=[];
-  var is_nn=['LUC','CLN','NTS','BHK','RSX'].includes(loai);
-  var is_o=['ONT','ODT'].includes(loai);
-  var ty_le_thu_hoi=dt>0 ? dtHL/dt : 0;
+  if(isNN && tyLe>=0.3){ var v=btDat*0.3; ht.push({ten:'Hỗ trợ ổn định đời sống',can_cu:'Điều 108 LĐĐ 2024',note:'Thu hồi '+Math.round(tyLe*100)+'% DT canh tác',tien:v}); }
+  if(isNN && d.ck_nn){ ht.push({ten:'Hỗ trợ đào tạo, chuyển đổi nghề',can_cu:'Điều 109 LĐĐ 2024',note:'6 tháng × 3.000.000đ/tháng',tien:18000000}); }
+  if(d.ck_cs){ ht.push({ten:'Hỗ trợ hộ chính sách / nghèo',can_cu:'QĐ 5516/QĐ-UBND TP.HCM',note:'10% giá trị BT đất, tối thiểu 5tr',tien:Math.max(btDat*0.1,5000000)}); }
+  if(isO && d.ck_dc){ ht.push({ten:'Hỗ trợ di chuyển, GPMB',can_cu:'Điều 110 LĐĐ 2024',note:'Mức cố định theo quy định',tien:5000000}); }
 
-  // HT ổn định đời sống: đất NN, thu hồi ≥ 30% DT canh tác
-  if(is_nn && ty_le_thu_hoi>=0.3){
-    var v=bt_dat*0.3;
-    ht.push({ten:'Hỗ trợ ổn định đời sống',can_cu:'Điều 108 LĐĐ 2024',tien:v,note:'Thu hồi '+Math.round(ty_le_thu_hoi*100)+'% diện tích canh tác'});
-  }
-  // HT đào tạo nghề: hộ thuần nông, đất NN
-  if(is_nn && ck_nn){
-    ht.push({ten:'Hỗ trợ đào tạo, chuyển đổi nghề nghiệp',can_cu:'Điều 109 LĐĐ 2024',tien:18000000,note:'Hỗ trợ 6 tháng, mức 3.000.000 đ/tháng'});
-  }
-  // HT chính sách / nghèo
-  if(ck_cs){
-    ht.push({ten:'Hỗ trợ bổ sung – hộ chính sách / nghèo',can_cu:'QĐ 5516/QĐ-UBND TP.HCM',tien:Math.max(bt_dat*0.1,5000000),note:'Tối thiểu 5.000.000 đ'});
-  }
-  // HT di chuyển
-  if(is_o && ck_dc){
-    ht.push({ten:'Hỗ trợ di chuyển, giải phóng mặt bằng',can_cu:'Điều 110 LĐĐ 2024',tien:5000000,note:'Mức cố định theo quy định'});
-  }
+  var tongHT=ht.reduce((s,h)=>s+h.tien,0);
+  var tongCong=btDat+btTs+tongHT;
+  var tdc=isO&&d.ck_dc;
+  var tdcNote=tdc?(d.ck_tdc?'Bố trí TĐC tại khu đã có sẵn (Điều 111 LĐĐ 2024)':'Cần bố trí khu TĐC trước khi thu hồi (Điều 111 LĐĐ 2024)'):null;
 
-  var tong_ht=ht.reduce((s,h)=>s+h.tien,0);
-  var tong=bt_dat+bt_ts+tong_ht;
-
-  // TĐC
-  var tdc=is_o && ck_dc;
-  var tdc_note=tdc?(ck_tdc?'Bố trí tái định cư tại khu TĐC đã có sẵn (Điều 111 LĐĐ 2024)':'Cần bố trí khu tái định cư hoặc giao đất TĐC khác trước khi thu hồi (Điều 111 LĐĐ 2024)'):null;
-
-  R={
-    chu:g('chu_sd').value||'(Chưa nhập)',cccd:g('cccd').value,dia_chi:g('dia_chi').value,
-    so_thua:g('so_thua').value,to_ban_do:g('to_ban_do').value,
-    loai,dt,dtTH:dtHL,gia,gcn,tt,nguon,thoi,
-    du_bt,ly_do,bt_dat,bt_ts,asset_rows,
-    ht,tong_ht,tong,tdc,tdc_note,
-    ten_da:g('ten_da').value,so_qd:g('so_qd').value,ngay_qd:g('ngay_qd').value,
-    co_quan:g('co_quan').value,can_bo:g('can_bo').value,
-    ck_dc,ck_cs,ck_nn,ck_tdc,
-    ty_le_thu_hoi,is_nn,is_o
-  };
-
-  renderResult();renderAudit();
-  show('ketqua');
+  STATE.calcResult={...d,dtHL,tyLe,hesoK,giaThuc,duBT,lyDo,btDat,btTs,ht,tongHT,tongCong,tdc,tdcNote,isO,isNN};
+  save('calcResult',STATE.calcResult);
+  renderResult();
+  renderAudit();
 }
 
-// ===== RENDER RESULT =====
 function renderResult(){
-  if(!R)return;
-  var r=R;
-  var asset_rows_html=r.asset_rows.map(a=>'<tr><td>'+a.loai+'</td><td>'+a.dt+' m²</td><td class="right">'+vn2(a.dn)+' đ/m²</td><td class="right">'+vn(a.tien)+'</td></tr>').join('');
-  var ht_rows=r.ht.map(h=>'<tr><td>'+h.ten+'<br><span style="font-size:11px;color:var(--text3)">'+h.can_cu+(h.note?' – '+h.note:'')+'</span></td><td colspan="2"></td><td class="right">'+vn(h.tien)+'</td></tr>').join('');
+  var r=STATE.calcResult; if(!r){g('tinh-empty').style.display='block';g('tinh-result').style.display='none';return;}
+  g('tinh-empty').style.display='none'; g('tinh-result').style.display='block';
+  g('res-name').textContent=r.chu;
+  g('res-info').textContent='Thửa '+r.thua+', Tờ '+r.to+' · '+(LOAI_LABELS[r.loai]||r.loai)+' · Thu hồi '+r.dtHL+'m²/'+r.dt+'m² ('+Math.round(r.tyLe*100)+'%)';
+  g('res-status').innerHTML=r.duBT?'<span class="badge badge-green">✓ Đủ điều kiện bồi thường</span>':'<span class="badge badge-red">✕ Không đủ – chỉ xét hỗ trợ</span>';
+  var cb=g('res-condition'); cb.className='info-box '+(r.duBT?'info-green':'info-red'); cb.textContent=r.lyDo;
+  g('res-btdat').textContent=fmtMoney(r.btDat); g('res-btdat-sub').textContent=r.dtHL+'m² × '+fmtN(r.giaThuc)+'đ/m² (K='+r.hesoK+')';
+  g('res-btts').textContent=fmtMoney(r.btTs); g('res-btts-sub').textContent=r.assets.length+' khoản tài sản';
+  g('res-ht').textContent=fmtMoney(r.tongHT); g('res-ht-sub').textContent=r.ht.length+' khoản hỗ trợ';
 
-  g('result-area').innerHTML=
-    '<div class="res-top">'+
-      '<div><div style="font-size:14px;font-weight:700;margin-bottom:4px">'+r.chu+'</div>'+
-      '<div style="font-size:12px;color:var(--text2)">Thửa '+r.so_thua+', Tờ bản đồ '+r.to_ban_do+' · '+(loaiLabels[r.loai]||r.loai)+' · Thu hồi '+r.dtTH+' m²/'+r.dt+' m² ('+Math.round(r.ty_le_thu_hoi*100)+'%)</div>'+
-      (r.ten_da?'<div style="font-size:12px;color:var(--text3);margin-top:2px">Dự án: '+r.ten_da+'</div>':'')+
-      '</div>'+
-      (r.du_bt?'<span class="status-pill pill-green">✓ Đủ điều kiện bồi thường đất</span>':'<span class="status-pill pill-red">✕ Không đủ – chỉ xét hỗ trợ</span>')+
-    '</div>'+
-    '<div class="info-box '+(r.du_bt?'info-green':'info-red')+'">'+r.ly_do+'</div>'+
-
-    '<div class="metric-row">'+
-      '<div class="metric-card"><div class="metric-lbl">Bồi thường đất</div><div class="metric-val" style="color:var(--blue)">'+vn(r.bt_dat)+'</div><div class="metric-sub">'+r.dtTH+' m² × '+vn2(r.gia)+' đ/m²</div></div>'+
-      '<div class="metric-card"><div class="metric-lbl">Bồi thường tài sản</div><div class="metric-val" style="color:var(--teal)">'+vn(r.bt_ts)+'</div><div class="metric-sub">'+r.asset_rows.length+' khoản tài sản</div></div>'+
-      '<div class="metric-card"><div class="metric-lbl">Tổng hỗ trợ</div><div class="metric-val" style="color:var(--amber)">'+vn(r.tong_ht)+'</div><div class="metric-sub">'+r.ht.length+' khoản hỗ trợ</div></div>'+
-    '</div>'+
-
-    '<table class="res-tbl">'+
-      '<thead><tr><th style="width:42%">Nội dung</th><th style="width:14%">Diện tích</th><th style="width:22%;text-align:right">Đơn giá</th><th style="width:22%;text-align:right">Thành tiền</th></tr></thead>'+
-      '<tbody>'+
-        '<tr class="section-row"><td colspan="4">I. Bồi thường về đất</td></tr>'+
-        (r.du_bt?'<tr><td>Đất '+r.loai+' – '+loaiLabels[r.loai]+'</td><td>'+r.dtTH+' m²</td><td class="right">'+vn2(r.gia)+' đ/m²</td><td class="right">'+vn(r.bt_dat)+'</td></tr>':
-          '<tr><td colspan="4" style="color:var(--red);font-size:12px;font-style:italic">Không đủ điều kiện bồi thường về đất – '+r.ly_do+'</td></tr>')+
-        (r.asset_rows.length?'<tr class="section-row"><td colspan="4">II. Bồi thường tài sản gắn liền</td></tr>'+asset_rows_html:'')+
-        (r.ht.length?'<tr class="section-row"><td colspan="4">III. Hỗ trợ</td></tr>'+ht_rows:'')+
-        '<tr class="total-row"><td colspan="3">TỔNG CỘNG (I + II + III)</td><td class="right">'+vn(r.tong)+'</td></tr>'+
-      '</tbody>'+
-    '</table>'+
-
-    (r.tdc?'<div class="info-box info-blue"><strong>Tái định cư:</strong> '+r.tdc_note+'</div>':'')+
-    '<div class="info-box info-amber">⚠️ <strong>Lưu ý:</strong> Kết quả trên là đề xuất tự động của hệ thống hỗ trợ. Phương án bồi thường chính thức phải được cán bộ thẩm định xem xét, trình và được Chủ tịch UBND cấp có thẩm quyền phê duyệt theo quy định tại Điều 86 Luật Đất đai 2024 và Nghị định 88/2024/NĐ-CP.</div>';
+  var rows='';
+  if(r.duBT) rows+='<tr><td>BỒI THƯỜNG ĐẤT</td><td colspan="4"></td><td></td></tr><tr><td>Đất '+r.loai+' – '+(LOAI_LABELS[r.loai]||'')+' (sau hệ số K='+r.hesoK+')</td><td>'+r.dtHL+' m²</td><td class="right mono">'+fmtN(r.gia)+'</td><td class="right mono">×'+r.hesoK+'</td><td class="right mono">'+fmtMoney(r.btDat)+'</td><td><span class="badge badge-blue">Đ.95 LĐĐ</span></td></tr>';
+  else rows+='<tr><td colspan="6" style="color:var(--red);font-size:11px;font-style:italic">Không bồi thường đất – '+r.lyDo+'</td></tr>';
+  if(r.assets.length){
+    rows+='<tr style="background:var(--gray0)"><td colspan="6" style="font-weight:600;font-size:10px;text-transform:uppercase;color:var(--text3)">BỒI THƯỜNG TÀI SẢN</td></tr>';
+    r.assets.forEach(a=>{ rows+='<tr><td>'+a.loai+'</td><td>'+a.dt+' m²</td><td class="right mono">'+fmtN(a.dn)+'</td><td class="right">×1</td><td class="right mono">'+fmtMoney(a.tien)+'</td><td><span class="badge badge-teal">Đ.101 LĐĐ</span></td></tr>'; });
+  }
+  if(r.ht.length){
+    rows+='<tr style="background:var(--gray0)"><td colspan="6" style="font-weight:600;font-size:10px;text-transform:uppercase;color:var(--text3)">HỖ TRỢ</td></tr>';
+    r.ht.forEach(h=>{ rows+='<tr><td>'+h.ten+'<br><span style="font-size:10px;color:var(--text3)">'+h.note+'</span></td><td colspan="3"></td><td class="right mono">'+fmtMoney(h.tien)+'</td><td><span class="badge badge-amber">'+h.can_cu+'</span></td></tr>'; });
+  }
+  rows+='<tr class="tbl-total"><td colspan="4"><strong>TỔNG CỘNG (Đất + Tài sản + Hỗ trợ)</strong></td><td class="right">'+fmtMoney(r.tongCong)+'</td><td></td></tr>';
+  g('res-table-body').innerHTML=rows;
+  var tdcEl=g('res-tdc');
+  if(r.tdc){tdcEl.style.display='block';tdcEl.innerHTML='<strong>TĐC:</strong> '+r.tdcNote;}
+  else tdcEl.style.display='none';
 }
 
-// ===== RENDER AUDIT =====
+// ═══════════════════════════════════════════════════
+// AUDIT
+// ═══════════════════════════════════════════════════
 function renderAudit(){
-  if(!R)return;
-  var r=R;
+  var r=STATE.calcResult; var d=STATE.hoSo;
+  var ae=g('audit-empty'), ar=g('audit-result');
+  if(!r||!d){ae.style.display='block';ar.style.display='none';return;}
+  ae.style.display='none'; ar.style.display='block';
   var checks=[];
-  function chk(type,title,desc){checks.push({type,title,desc})}
+  function chk(t,title,desc){checks.push({t,title,desc});}
+  chk(d.chu&&d.chu!='(Chưa nhập)'?'ok':'err','Họ tên chủ sử dụng',d.chu&&d.chu!='(Chưa nhập)'?'Đã nhập: '+d.chu:'Thiếu họ tên – bắt buộc trong hồ sơ');
+  var cl=d.cccd?d.cccd.length:0;
+  chk(cl===9||cl===12?'ok':'warn','Số CCCD/CMND',cl===9||cl===12?'Hợp lệ ('+cl+' chữ số)':(d.cccd?'Không hợp lệ – cần 9 hoặc 12 chữ số':'Chưa nhập'));
+  chk(d.loai?'ok':'err','Loại đất',d.loai?'Đã xác định: '+(LOAI_LABELS[d.loai]||d.loai):'Chưa chọn loại đất');
+  var dtw=d.dtth>d.dt&&d.dt>0;
+  chk(dtw?'err':(d.dt>0&&d.dtth>0?'ok':'err'),'Diện tích thu hồi',dtw?'LỖI: Thu hồi ('+d.dtth+'m²) > Tổng ('+d.dt+'m²)':(d.dt>0&&d.dtth>0?'Hợp lệ: '+d.dtth+'/'+d.dt+' m² ('+Math.round(r.tyLe*100)+'%)':'Chưa nhập diện tích'));
+  chk(d.gia>0?'ok':'err','Giá đất cụ thể',d.gia>0?'Đã nhập: '+fmtN(d.gia)+' đ/m²':'Chưa nhập giá đất – cần QĐ giá của UBND');
+  chk(d.duan?'ok':'warn','Tên dự án',d.duan?'Dự án: '+d.duan:'Chưa nhập tên dự án');
+  chk(d.soqd?'ok':'warn','Số QĐ thu hồi đất',d.soqd?'Số QĐ: '+d.soqd:'Chưa nhập số QĐ thu hồi đất');
+  if(d.tinhTrang==='vi_pham') chk('err','Vi phạm pháp luật đất đai','Đất vi phạm – KHÔNG đủ điều kiện BT đất (Điều 95 LĐĐ 2024)');
+  else if(d.tinhTrang==='sai') chk('warn','Sử dụng sai mục đích','Phần sai mục đích có thể không được BT – cần xác minh');
+  if(r.tdc&&!d.ck_tdc) chk('warn','Khu TĐC chưa sẵn sàng','Hộ phải di chuyển nhưng chưa có khu TĐC – cần bố trí trước khi thu hồi');
+  if(!d.assets.length) chk('warn','Chưa khai báo tài sản trên đất','Nếu có nhà/công trình, cần bổ sung để tính đầy đủ');
+  d.assets.forEach(a=>{if(!a.dn) chk('err','Đơn giá tài sản trống','Tài sản "'+a.loai+'" chưa có đơn giá bồi thường');});
+  if(!d.canbo) chk('warn','Cán bộ thẩm định','Chưa nhập thông tin cán bộ thẩm định phụ trách');
+  chk(r.hesoK>1?'ok':'warn','Hệ số điều chỉnh K',r.hesoK>1?'Hệ số K='+r.hesoK+' (tự động từ CSDL giá đất)':'Hệ số K=1 – kiểm tra lại CSDL giá đất');
 
-  chk(r.chu&&r.chu!='(Chưa nhập)'?'ok':'err','Họ tên chủ sử dụng đất',r.chu&&r.chu!='(Chưa nhập)'?'Đã nhập: '+r.chu:'Thiếu họ tên chủ sử dụng – bắt buộc trong hồ sơ');
-  var cl=r.cccd?r.cccd.length:0;
-  chk(cl===9||cl===12?'ok':(r.cccd?'warn':'err'),'Số CCCD/CMND',cl===9||cl===12?'Hợp lệ ('+cl+' chữ số)':(r.cccd?'Số không hợp lệ – cần 9 hoặc 12 chữ số':'Chưa nhập số CCCD/CMND'));
-  chk(r.loai?'ok':'err','Loại đất',r.loai?'Đã xác định: '+(loaiLabels[r.loai]||r.loai):'Chưa chọn loại đất – bắt buộc để tính bồi thường');
-  var dtw=r.dtTH>r.dt&&r.dt>0;
-  chk(dtw?'err':(r.dt>0&&r.dtTH>0?'ok':'err'),'Diện tích thu hồi',dtw?'LỖI: Diện tích thu hồi ('+r.dtTH+' m²) lớn hơn tổng ('+r.dt+' m²) – không hợp lệ':(r.dt>0&&r.dtTH>0?'Hợp lệ: thu hồi '+r.dtTH+' m² / tổng '+r.dt+' m² ('+Math.round(r.dtTH/r.dt*100)+'%)':'Chưa nhập diện tích – bắt buộc'));
-  chk(r.gia>0?'ok':'err','Giá đất cụ thể',r.gia>0?'Đã nhập: '+vn2(r.gia)+' đ/m²':'Chưa nhập giá đất cụ thể – cần có quyết định phê duyệt giá đất của UBND tỉnh/thành phố');
-  chk(r.ten_da?'ok':'warn','Tên dự án thu hồi đất',r.ten_da?'Dự án: '+r.ten_da:'Chưa nhập tên dự án – cần bổ sung để soạn hồ sơ chính xác');
-  chk(r.so_qd?'ok':'warn','Số quyết định thu hồi đất',r.so_qd?'Số QĐ: '+r.so_qd:'Chưa nhập số quyết định thu hồi đất');
-  if(r.tt==='vi_pham') chk('err','Tình trạng vi phạm pháp luật','Đất đang vi phạm pháp luật đất đai – KHÔNG đủ điều kiện bồi thường đất (Điều 95 LĐĐ 2024). Chỉ được xem xét hỗ trợ.');
-  else if(r.tt==='sai') chk('warn','Sử dụng sai mục đích','Đất sử dụng sai mục đích – phần diện tích sai mục đích có thể không được bồi thường. Cần xác minh thực tế.');
-  if(r.tdc&&!r.ck_tdc) chk('warn','Yêu cầu tái định cư chưa chuẩn bị','Hộ phải di chuyển chỗ ở nhưng chưa có khu TĐC sẵn sàng. Cần bố trí khu TĐC trước khi ban hành quyết định thu hồi (Điều 111 LĐĐ 2024).');
-  if(!r.asset_rows.length) chk('warn','Chưa khai báo tài sản trên đất','Nếu thực tế có nhà ở, công trình, cây trồng trên đất, cần bổ sung để tính toán đầy đủ và đúng quy định.');
-  r.asset_rows.forEach(a=>{if(!a.dn) chk('err','Đơn giá tài sản chưa nhập','Tài sản "'+a.loai+'" chưa có đơn giá bồi thường. Cần nhập đơn giá từ Bảng giá bồi thường tài sản được UBND phê duyệt.')});
-  if(!r.can_bo) chk('warn','Cán bộ thẩm định','Chưa nhập thông tin cán bộ thẩm định phụ trách hồ sơ');
-
-  var nok=checks.filter(c=>c.type==='ok').length;
-  var nwarn=checks.filter(c=>c.type==='warn').length;
-  var nerr=checks.filter(c=>c.type==='err').length;
-
-  g('audit-area').innerHTML=
-    '<div class="audit-stat-row">'+
-      '<div class="audit-stat"><div class="audit-num" style="color:var(--green)">'+nok+'</div><div class="audit-lbl">Hợp lệ</div></div>'+
-      '<div class="audit-stat"><div class="audit-num" style="color:var(--amber)">'+nwarn+'</div><div class="audit-lbl">Cảnh báo</div></div>'+
-      '<div class="audit-stat"><div class="audit-num" style="color:var(--red)">'+nerr+'</div><div class="audit-lbl">Lỗi cần sửa</div></div>'+
-    '</div>'+
-    (nerr>0?'<div class="info-box info-red" style="margin-bottom:12px">⛔ Có '+nerr+' lỗi cần khắc phục trước khi lập phương án chính thức.</div>':'')+
-    (nwarn>0&&nerr===0?'<div class="info-box info-amber" style="margin-bottom:12px">⚠️ Hồ sơ có '+nwarn+' mục cần bổ sung, xem xét thêm trước khi hoàn thiện.</div>':'')+
-    (nerr===0&&nwarn===0?'<div class="info-box info-green" style="margin-bottom:12px">✅ Hồ sơ đã đầy đủ và hợp lệ. Có thể tiến hành lập phương án bồi thường chính thức.</div>':'')+
-    '<div class="audit-list">'+checks.map(c=>'<div class="audit-item a-'+c.type+'"><div class="a-icon">'+(c.type==='ok'?'✓':c.type==='warn'?'!':'✕')+'</div><div><div class="a-title">'+c.title+'</div><div class="a-desc">'+c.desc+'</div></div></div>').join('')+'</div>';
+  var nok=checks.filter(c=>c.t==='ok').length, nw=checks.filter(c=>c.t==='warn').length, ne=checks.filter(c=>c.t==='err').length;
+  g('audit-stat-row').innerHTML=
+    '<div class="stat-box"><div class="stat-num" style="color:var(--green)">'+nok+'</div><div class="stat-lbl">Hợp lệ</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--amber)">'+nw+'</div><div class="stat-lbl">Cảnh báo</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--red)">'+ne+'</div><div class="stat-lbl">Lỗi</div></div>';
+  var icon={ok:'✓',warn:'!',err:'✕'};
+  g('audit-list').innerHTML=(ne>0?'<div class="info-box info-red" style="margin-bottom:10px">⛔ Có '+ne+' lỗi cần khắc phục trước khi lập phương án chính thức.</div>':'')+
+    checks.map(c=>'<div class="audit-row audit-'+c.t+'"><div class="audit-icon">'+icon[c.t]+'</div><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">'+c.title+'</div><div style="font-size:11px;color:var(--text2)">'+c.desc+'</div></div></div>').join('');
 }
 
-// ===== GENERATE DOCUMENTS =====
-function genPhuongAn(r){
-  var asset_txt=r.asset_rows.length?r.asset_rows.map((a,i)=>'  '+(i+1)+'. '+a.loai+': '+a.dt+' m² × '+vn2(a.dn)+' đ/m² = '+vn(a.tien)).join('\n'):'  Không có tài sản trên đất';
-  var ht_txt=r.ht.length?r.ht.map((h,i)=>'  '+(i+1)+'. '+h.ten+'\n     Căn cứ: '+h.can_cu+(h.note?' ('+h.note+')':'')+'\n     Số tiền: '+vn(h.tien)).join('\n'):'  Không có khoản hỗ trợ';
+// ═══════════════════════════════════════════════════
+// GIS MAP
+// ═══════════════════════════════════════════════════
+var gisMap=null, gisLayer=null, satLayer=null, streetLayer=null, satOn=false;
+function initMap(){
+  gisMap=L.map('gis-map',{center:[10.762622,106.660172],zoom:12});
+  streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(gisMap);
+  satLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri'});
+}
+function toggleSatellite(){
+  if(!gisMap)return;
+  satOn=!satOn;
+  if(satOn){gisMap.removeLayer(streetLayer);satLayer.addTo(gisMap);}
+  else{gisMap.removeLayer(satLayer);streetLayer.addTo(gisMap);}
+}
+function loadGisFile(input){
+  var f=input.files[0]; if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(gisLayer)gisMap.removeLayer(gisLayer);
+      gisLayer=L.geoJSON(data,{
+        style:function(feat){
+          var loai=(feat.properties&&feat.properties.LOAIDAT)||'';
+          var color=['ONT','ODT'].includes(loai)?'#1E88E5':['LUC','CLN','NTS','BHK'].includes(loai)?'#43A047':'#F57C00';
+          return{color,weight:1.5,fillColor:color,fillOpacity:.3};
+        },
+        onEachFeature:function(feat,layer){
+          layer.on('click',function(){showGisFeature(feat.properties);});
+        }
+      }).addTo(gisMap);
+      gisMap.fitBounds(gisLayer.getBounds());
+      showNotify('✅ Đã tải GeoJSON thành công – '+((data.features||[]).length)+' thửa đất','green');
+    }catch(err){showNotify('❌ Lỗi đọc file – cần định dạng GeoJSON hợp lệ','red');}
+  };
+  reader.readAsText(f);
+}
+function handleGisDrop(e){
+  e.preventDefault();document.getElementById('gis-drop').classList.remove('drag-over');
+  var f=e.dataTransfer.files[0];if(!f)return;
+  var inp=document.getElementById('gis-file');
+  var dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;loadGisFile(inp);
+}
+function clearGisLayer(){if(gisLayer&&gisMap){gisMap.removeLayer(gisLayer);gisLayer=null;}}
+function gotoCoords(){
+  var val=document.getElementById('gis-search-coords').value;
+  var parts=val.split(',').map(s=>parseFloat(s.trim()));
+  if(parts.length===2&&!isNaN(parts[0])&&!isNaN(parts[1])){
+    gisMap.setView([parts[0],parts[1]],16);
+    L.marker([parts[0],parts[1]]).addTo(gisMap).bindPopup('📍 '+val).openPopup();
+  }
+}
+function showGisFeature(props){
+  var html='<table class="tbl">'+(Object.entries(props||{}).map(([k,v])=>'<tr><td style="font-weight:600;white-space:nowrap">'+k+'</td><td>'+v+'</td></tr>').join(''))+'</table>';
+  document.getElementById('gis-feature-info').innerHTML=html||'<div class="empty"><div class="empty-sub">Không có thuộc tính</div></div>';
+}
+
+// ═══════════════════════════════════════════════════
+// GIÁ ĐẤT
+// ═══════════════════════════════════════════════════
+function renderGia(filter){
+  var data=filter?STATE.giaData.filter(d=>JSON.stringify(d).toLowerCase().includes(filter.toLowerCase())):STATE.giaData;
+  var loai_map={ONT:'Đất ở NT',ODT:'Đất ở ĐT',LUC:'Đất lúa',CLN:'Cây LN',NTS:'TS',BHK:'CHN',RSX:'Rừng SX'};
+  g('gia-tbody').innerHTML=data.length?data.map((d,i)=>'<tr><td>'+loai_map[d.loai]||d.loai+'</td><td><span class="badge badge-navy">'+d.ma+'</span></td><td>'+d.vitri+'</td><td>'+d.kv+'</td><td class="right mono" style="font-weight:600">'+fmtN(d.gia)+'</td><td><span class="badge badge-green">'+d.ngay+'</span></td><td><span class="badge badge-gray" style="font-size:10px">'+d.qd+'</span></td><td><button class="btn btn-secondary btn-sm" onclick="editGia('+STATE.giaData.indexOf(d)+')">✏️</button> <button class="btn btn-danger btn-sm" onclick="deleteGia('+STATE.giaData.indexOf(d)+')">🗑️</button></td></tr>').join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">Chưa có dữ liệu giá đất</td></tr>';
+  var hd=STATE.hesoData; g('heso-tbody').innerHTML=hd.length?hd.map((h,i)=>'<tr><td><span class="badge badge-navy">'+h.loai+'</span></td><td>'+h.nam+'</td><td>'+h.quan+'</td><td class="right mono" style="font-weight:600;color:var(--blue)">'+h.heso+'</td><td><span class="badge badge-gray" style="font-size:10px">'+h.qd+'</span></td><td><button class="btn btn-danger btn-sm" onclick="STATE.hesoData.splice('+i+',1);save(\'heso\',STATE.hesoData);renderGia()">🗑️</button></td></tr>').join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Chưa có hệ số</td></tr>';
+  // update dashboard
+  var pr=document.getElementById('dashboard-price-rows');
+  if(pr) pr.innerHTML=STATE.giaData.slice(0,5).map(d=>'<tr><td>'+d.ma+'</td><td>VT'+d.vitri+' – '+d.kv+'</td><td class="right mono">'+fmtN(d.gia)+'</td><td class="right mono">'+d.heso+'</td></tr>').join('');
+}
+function filterGia(q){renderGia(q);}
+function openAddGia(idx){
+  g('ag_edit_idx').value=idx!==undefined?idx:-1;
+  if(idx!==undefined){var d=STATE.giaData[idx];g('ag_loai').value=d.ma;g('ag_vitri').value=d.vitri;g('ag_kv').value=d.kv;g('ag_gia').value=d.gia;g('ag_heso').value=d.heso;g('ag_ngay').value=d.ngay;g('ag_qd').value=d.qd;g('ag_note').value=d.note||'';}
+  openModal('modal-add-gia');
+}
+function editGia(i){openAddGia(i);}
+function deleteGia(i){if(confirm('Xóa mức giá này?')){STATE.giaData.splice(i,1);save('gia',STATE.giaData);renderGia();showNotify('Đã xóa','green');}}
+function saveGia(){
+  var obj={loai:g('ag_loai').value,ma:g('ag_loai').value,vitri:g('ag_vitri').value,kv:g('ag_kv').value,gia:parseFloat(g('ag_gia').value)||0,heso:parseFloat(g('ag_heso').value)||1,ngay:g('ag_ngay').value,qd:g('ag_qd').value,note:g('ag_note').value};
+  var idx=parseInt(g('ag_edit_idx').value);
+  if(idx>=0) STATE.giaData[idx]=obj; else STATE.giaData.push(obj);
+  save('gia',STATE.giaData);renderGia();closeModal('modal-add-gia');showNotify('✅ Đã lưu mức giá','green');
+}
+function openAddHeSo(){
+  var loai=prompt('Loại đất (VD: ONT):','ONT'); if(!loai)return;
+  var nam=prompt('Năm áp dụng:',new Date().getFullYear()); if(!nam)return;
+  var quan=prompt('Quận/Huyện:','Quận 1'); if(!quan)return;
+  var heso=prompt('Hệ số K:','1.0'); if(!heso)return;
+  var qd=prompt('Căn cứ QĐ:','QĐ 5516/QĐ-UBND'); if(!qd)return;
+  STATE.hesoData.push({loai,nam,quan,heso,qd}); save('heso',STATE.hesoData); renderGia(); showNotify('✅ Đã thêm hệ số','green');
+}
+function exportGia(){
+  var csv='Loại đất,Mã,Vị trí,Khu vực,Đơn giá (đ/m²),Hệ số K,Ngày hiệu lực,QĐ căn cứ\n';
+  STATE.giaData.forEach(d=>{csv+=d.loai+','+d.ma+','+d.vitri+','+d.kv+','+d.gia+','+d.heso+','+d.ngay+','+d.qd+'\n';});
+  dlBlob(csv,'bang-gia-dat.csv','text/csv');
+}
+function downloadGiaMau(){
+  var csv='loai_dat,ma,vi_tri,khu_vuc,don_gia,he_so_k,hieu_luc,can_cu\nONT,ONT,1,Quận 1,180000000,1.5,2024-08-01,QĐ 12/2024/QĐ-UBND-TP\n';
+  dlBlob(csv,'mau-gia-dat.csv','text/csv');
+}
+function importGia(inp){
+  var f=inp.files[0]; if(!f)return;
+  var reader=new FileReader(); reader.onload=function(e){
+    var lines=e.target.result.trim().split('\n');
+    var added=0; lines.slice(1).forEach(line=>{
+      var p=line.split(','); if(p.length>=6){STATE.giaData.push({loai:p[0].trim(),ma:p[1].trim(),vitri:p[2].trim(),kv:p[3].trim(),gia:parseFloat(p[4])||0,heso:parseFloat(p[5])||1,ngay:p[6]?p[6].trim():'',qd:p[7]?p[7].trim():'',note:''});added++;}
+    });
+    save('gia',STATE.giaData); renderGia(); showNotify('✅ Đã nhập '+added+' mức giá từ CSV','green');
+  }; reader.readAsText(f);
+}
+
+// ═══════════════════════════════════════════════════
+// LAW
+// ═══════════════════════════════════════════════════
+function renderLawList(q){
+  var type=(g('law-filter-type')||{}).value||'';
+  var data=STATE.laws.filter(l=>{
+    var match=!q||JSON.stringify(l).toLowerCase().includes(q.toLowerCase());
+    var typeMatch=!type||l.type===type;
+    return match&&typeMatch;
+  });
+  var typeLabels={luat:'Luật',nghi_dinh:'Nghị định',quyet_dinh:'Quyết định',thong_tu:'Thông tư',cong_van:'Công văn',khac:'Khác'};
+  g('law-list-content').innerHTML=data.length?data.map((l,i)=>`<div class="law-item" onclick="viewLaw(${STATE.laws.indexOf(l)})">
+    <div class="law-item-header">
+      <span class="law-item-code">${l.code}</span>
+      <span class="law-item-title">${l.name}</span>
+      <span class="badge ${l.status==='hieu_luc'?'badge-green':l.status==='het_hl'?'badge-red':'badge-gray'}">${l.status==='hieu_luc'?'Có hiệu lực':l.status==='het_hl'?'Hết hiệu lực':'Chưa HL'}</span>
+      <span class="badge badge-gray">${typeLabels[l.type]||l.type}</span>
+      <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteLaw(${STATE.laws.indexOf(l)})">🗑️</button>
+    </div>
+    <div class="law-item-body">${l.name} · ${l.org} · Ngày ${l.date||'?'} · Hiệu lực từ ${l.effective||'?'}</div>
+    ${l.tags?'<div style="margin-top:4px">'+l.tags.map(t=>'<span class="tag">'+t+'</span>').join('')+'</div>':''}
+  </div>`).join(''):'<div class="empty"><div class="empty-icon">⚖️</div><div class="empty-title">Không tìm thấy văn bản</div></div>';
+  g('audit-badge-count')||g('nav-badge')&&(g('nav-badge').textContent=STATE.laws.length);
+  document.querySelector('[data-panel="law"] .nav-badge')&&(document.querySelector('[data-panel="law"] .nav-badge').textContent=STATE.laws.length);
+}
+function filterLaw(q){renderLawList(q);}
+function viewLaw(i){
+  var l=STATE.laws[i]; if(!l)return;
+  g('law-view-title').textContent=l.code+' – '+l.name;
+  g('law-view-meta').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span class="badge badge-navy">'+l.code+'</span><span class="badge '+(l.status==='hieu_luc'?'badge-green':'badge-red')+'">'+(l.status==='hieu_luc'?'Có hiệu lực':'Hết hiệu lực')+'</span><span class="badge badge-gray">'+l.org+'</span><span class="badge badge-gray">Ban hành: '+l.date+'</span><span class="badge badge-blue">Hiệu lực: '+l.effective+'</span></div>'+(l.link?'<a href="'+l.link+'" target="_blank" style="font-size:12px;color:var(--blue)">🔗 Xem văn bản gốc</a>':'');
+  g('law-view-content').textContent=l.content||'(Chưa có nội dung)';
+  openModal('modal-law-view');
+}
+function deleteLaw(i){if(confirm('Xóa văn bản này?')){STATE.laws.splice(i,1);save('laws',STATE.laws);renderLawList('');showNotify('Đã xóa','green');}}
+function copyLawContent(){var el=g('law-view-content');navigator.clipboard&&navigator.clipboard.writeText(el.textContent).then(()=>showNotify('Đã sao chép','green'));}
+function saveLaw(){
+  var tags=[...document.querySelectorAll('.law-tag-ck:checked')].map(c=>c.value);
+  var law={type:g('law_type').value,code:g('law_code').value,name:g('law_name').value,date:g('law_date').value,effective:g('law_effective').value,org:g('law_org').value,status:g('law_status').value,tags,link:g('law_link').value,content:g('law_content').value};
+  if(!law.code||!law.name){showNotify('Vui lòng nhập số hiệu và tên văn bản','red');return;}
+  STATE.laws.push(law); save('laws',STATE.laws);
+  ['law_code','law_name','law_date','law_effective','law_org','law_link','law_content'].forEach(id=>g(id)&&(g(id).value=''));
+  document.querySelectorAll('.law-tag-ck').forEach(c=>c.checked=false);
+  showNotify('✅ Đã lưu văn bản vào hệ thống','green');
+  switchTab('law','list'); renderLawList('');
+}
+function searchArticles(q){
+  if(!q){g('law-article-results').innerHTML='';return;}
+  var results=[];
+  STATE.laws.forEach(l=>{
+    if(l.content){
+      var lines=l.content.split('\n');
+      lines.forEach(line=>{if(line.toLowerCase().includes(q.toLowerCase()))results.push({law:l,line:line.trim()});});
+    }
+  });
+  g('law-article-results').innerHTML=results.length?results.map(r=>'<div class="law-item"><div class="law-item-header"><span class="law-item-code">'+r.law.code+'</span><span class="law-item-title">'+r.law.name+'</span></div><div class="law-item-body">'+r.line.replace(new RegExp(q,'gi'),'<mark>$&</mark>')+'</div></div>').join(''):'<div class="empty"><div class="empty-sub">Không tìm thấy điều khoản phù hợp</div></div>';
+}
+
+// ═══════════════════════════════════════════════════
+// WORKFLOW
+// ═══════════════════════════════════════════════════
+function renderWorkflow(filter){
+  var wf=STATE.wfSteps; var done=wf.filter(s=>s.status==='done').length; var active=wf.filter(s=>s.status==='active').length;
+  g('wf-done-n').textContent=done; g('wf-active-n').textContent=active; g('wf-pending-n').textContent=wf.length-done-active;
+  g('wf-progress').value=done; g('wf-pct').textContent=Math.round(done/wf.length*100)+'%';
+  var statusColors={done:'var(--green)',active:'var(--blue)',pending:'var(--gray3)',blocked:'var(--red)'};
+  var statusLabels={done:'Hoàn thành',active:'Đang thực hiện',pending:'Chưa thực hiện',blocked:'Bị chặn'};
+  var deptColors={'UBND xa':'badge-blue','Quy dat':'badge-teal','UBND quan':'badge-navy','TNMT':'badge-amber','Chu dau tu':'badge-gray'};
+  var deptLabels={'UBND xa':'UBND xã/phường','Quy dat':'Ban/Tổ GPMB','UBND quan':'UBND quận/TP','TNMT':'Sở TN&MT','Chu dau tu':'Chủ đầu tư'};
+  var container=g('wf-container');
+  var line=container.querySelector('.wf-line'); container.innerHTML='';
+  var wfLine=document.createElement('div');wfLine.className='wf-line';container.appendChild(wfLine);
+  wf.filter(s=>!filter||filter==='all'||s.dept===filter).forEach((s,i)=>{
+    var div=document.createElement('div'); div.className='wf-step '+s.status;
+    div.innerHTML='<div class="wf-dot">'+s.num+'</div>'+
+      '<div class="wf-step-header">'+
+        '<span class="wf-step-num">B'+String(s.num).padStart(2,'0')+'</span>'+
+        '<span class="wf-step-title">'+s.title+'</span>'+
+        '<span class="badge '+(deptColors[s.dept]||'badge-gray')+'" style="font-size:10px">'+(deptLabels[s.dept]||s.dept)+'</span>'+
+        '<span class="badge '+(s.status==='done'?'badge-green':s.status==='active'?'badge-blue':s.status==='blocked'?'badge-red':'badge-gray')+'">'+statusLabels[s.status]+'</span>'+
+      '</div>'+
+      '<div class="wf-step-desc">'+s.desc+'</div>'+
+      (s.date?'<div style="font-size:10px;color:var(--text3);margin-top:4px">📅 '+s.date+'</div>':'')+
+      (s.note?'<div style="font-size:11px;color:var(--amber);margin-top:4px;padding:4px 8px;background:var(--amber-light);border-radius:4px">📝 '+s.note+'</div>':'')+
+      '<div class="wf-step-actions"><button class="btn btn-secondary btn-sm" onclick="openWfStep('+STATE.wfSteps.indexOf(s)+')">✏️ Cập nhật</button>'+
+      (s.status==='pending'?'<button class="btn btn-primary btn-sm" onclick="quickDoneWf('+STATE.wfSteps.indexOf(s)+')">✅ Đánh dấu hoàn thành</button>':'')+
+      '</div>';
+    container.appendChild(div);
+  });
+}
+function filterWf(dept){renderWorkflow(dept==='all'?null:dept);}
+function openWfStep(i){
+  var s=STATE.wfSteps[i];
+  g('wf-modal-title').textContent='Bước '+s.num+': '+s.title;
+  g('wf-modal-body').innerHTML='<div class="info-box info-blue" style="font-size:12px">'+s.desc+'</div>';
+  g('wf_status_sel').value=s.status;
+  g('wf_date_inp').value=s.date||'';
+  g('wf_note_inp').value=s.note||'';
+  g('wf_step_idx').value=i;
+  openModal('modal-wf-step');
+}
+function quickDoneWf(i){STATE.wfSteps[i].status='done';STATE.wfSteps[i].date=new Date().toISOString().slice(0,10);save('wf',STATE.wfSteps);renderWorkflow();showNotify('✅ Bước '+STATE.wfSteps[i].num+' hoàn thành','green');}
+function saveWfStep(){
+  var i=parseInt(g('wf_step_idx').value);
+  STATE.wfSteps[i].status=g('wf_status_sel').value;
+  STATE.wfSteps[i].date=g('wf_date_inp').value;
+  STATE.wfSteps[i].note=g('wf_note_inp').value;
+  save('wf',STATE.wfSteps); closeModal('modal-wf-step'); renderWorkflow(); showNotify('✅ Đã cập nhật','green');
+}
+
+// ═══════════════════════════════════════════════════
+// TEMPLATES / BIỂU MẪU
+// ═══════════════════════════════════════════════════
+var selectedTmpl=null;
+function renderTemplates(){
+  g('tmpl-grid').innerHTML=STATE.templates.map((t,i)=>`<div class="tmpl-card ${selectedTmpl===t.id?'selected':''}" onclick="selectTmpl('${t.id}')">
+    <div class="tmpl-icon">${t.icon}</div>
+    <div class="tmpl-name">${t.name}</div>
+    <div class="tmpl-desc">${t.desc}</div>
+    <div style="margin-top:8px">${t.tags.map(tg=>'<span class="tag">'+tg+'</span>').join('')}${t.custom?'<span class="tag" style="background:var(--blue-light);color:var(--blue)">Mẫu tùy chỉnh</span>':''}</div>
+  </div>`).join('');
+
+  // Placeholder list
+  var phHtml='';
+  Object.entries(PLACEHOLDERS).forEach(([k,v])=>{ phHtml+='<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><code style="background:var(--gray1);padding:2px 5px;border-radius:3px;font-family:var(--mono);font-size:10px">'+k+'</code><span style="font-size:11px;color:var(--text2)">→ '+v+'</span></div>'; });
+  var pl=document.getElementById('placeholder-list');
+  if(pl) pl.outerHTML='<div id="placeholder-list" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:4px">'+phHtml+'</div>';
+}
+function selectTmpl(id){
+  selectedTmpl=id;
+  renderTemplates();
+  switchTab('bm','preview'); if(event) event.target&&event.target.closest('.tab-btn')&&(event.target.classList.add('active'));
+  generatePreview(id);
+}
+function generatePreview(id){
+  if(!STATE.calcResult&&!STATE.hoSo){g('bm-preview-area').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Cần nhập hồ sơ trước</div><div class="empty-sub">Nhập hồ sơ và tính toán để tạo văn bản</div></div>';return;}
+  var content=genDoc(id);
+  g('bm-preview-area').innerHTML='<div style="display:flex;gap:8px;margin-bottom:10px"><button class="btn btn-gold" onclick="downloadTxt()">⬇ Tải .txt</button><button class="btn btn-primary" onclick="downloadHtmlDoc()">⬇ Tải .html (Word)</button></div><div class="pdf-preview"><pre style="font-family:\'Times New Roman\',serif;font-size:12pt;line-height:1.8;white-space:pre-wrap">'+escHTML(content)+'</pre></div>';
+  STATE._currentDocText=content; STATE._currentDocTitle=selectedTmpl;
+}
+function uploadTemplate(inp){
+  var f=inp.files[0]; if(!f)return;
+  var reader=new FileReader(); reader.onload=function(e){
+    var tmpl={id:'custom_'+Date.now(),name:f.name.replace(/\.[^.]+$/,''),desc:'Mẫu tùy chỉnh được tải lên',icon:'📝',tags:['tùy chỉnh'],custom:true,content:e.target.result};
+    STATE.templates.push(tmpl); save('templates',STATE.templates); renderTemplates(); showNotify('✅ Đã tải lên biểu mẫu: '+tmpl.name,'green');
+  }; reader.readAsText(f);
+}
+
+// ═══════════════════════════════════════════════════
+// DOCUMENT GENERATION
+// ═══════════════════════════════════════════════════
+function getPlaceholderValues(){
+  var r=STATE.calcResult||STATE.hoSo||{};
+  var today=new Date().toLocaleDateString('vi-VN');
+  return {
+    '{{TEN_CHU}}':r.chu||'',
+    '{{CCCD}}':r.cccd||'',
+    '{{DIA_CHI}}':r.diachi||r.dia_chi||'',
+    '{{SO_THUA}}':r.thua||r.so_thua||'',
+    '{{SO_TO}}':r.to||r.to_ban_do||'',
+    '{{LOAI_DAT}}':LOAI_LABELS[r.loai]||r.loai||'',
+    '{{DIEN_TICH}}':r.dt||'',
+    '{{DIEN_TICH_TH}}':r.dtHL||r.dtth||'',
+    '{{GIA_DAT}}':fmtN(r.gia||0),
+    '{{BT_DAT}}':fmtMoney(r.btDat||0),
+    '{{BT_TS}}':fmtMoney(r.btTs||0),
+    '{{TONG_HO_TRO}}':fmtMoney(r.tongHT||0),
+    '{{TONG_CONG}}':fmtMoney(r.tongCong||0),
+    '{{TEN_DU_AN}}':r.duan||r.ten_da||'',
+    '{{SO_QD}}':r.soqd||r.so_qd||'',
+    '{{NGAY_QD}}':r.ngayqd?fdate(r.ngayqd):'',
+    '{{CO_QUAN}}':g('ks_coquan')&&g('ks_coquan').value?g('ks_coquan').value:'UBND Thành phố Hồ Chí Minh',
+    '{{CAN_BO}}':r.canbo||g('ks_nguoiky')&&g('ks_nguoiky').value||'',
+    '{{NGAY_HOM_NAY}}':today,
+    '{{GCN}}':GCN_LABELS[r.gcn]||'',
+  };
+}
+
+function applyPlaceholders(text, vals){ Object.entries(vals).forEach(([k,v])=>{text=text.split(k).join(v);}); return text; }
+
+function genDoc(id){
+  var r=STATE.calcResult||STATE.hoSo||{};
+  var vals=getPlaceholderValues();
+  // Check for custom template
+  var customTmpl=STATE.templates.find(t=>t.id===id&&t.custom);
+  if(customTmpl&&customTmpl.content) return applyPlaceholders(customTmpl.content,vals);
+  var today=new Date().toLocaleDateString('vi-VN');
+  var fns={phuong_an:genPhuongAn,quyet_dinh:genQuyetDinh,bien_ban_kt:genBienBan,thong_bao:genThongBao,bien_ban_ke:genBienBanKe,bb_giaonhan:genBienBanGiaoNhan};
+  return (fns[id]||genPhuongAn)(r,today,vals);
+}
+
+function genPhuongAn(r,today,vals){
+  var assetTxt=(r.assets||[]).length?(r.assets||[]).map((a,i)=>'  '+(i+1)+'. '+a.loai+': '+a.dt+' m² × '+fmtN(a.dn)+' đ/m² = '+fmtMoney(a.tien)).join('\n'):'  Không có tài sản trên đất';
+  var htTxt=(r.ht||[]).length?(r.ht||[]).map((h,i)=>'  '+(i+1)+'. '+h.ten+'\n     Căn cứ: '+h.can_cu+(h.note?' ('+h.note+')':'')+'\n     Số tiền: '+fmtMoney(h.tien)).join('\n'):'  Không có khoản hỗ trợ';
   return `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập – Tự do – Hạnh phúc
-────────────────────────────────
+════════════════════════════════════════════
 
 PHƯƠNG ÁN BỒI THƯỜNG, HỖ TRỢ, TÁI ĐỊNH CƯ
-(Theo quy định tại Luật Đất đai 2024, Nghị định 88/2024/NĐ-CP)
+(Theo Luật Đất đai 2024, NĐ 88/2024/NĐ-CP, QĐ 5516/QĐ-UBND TP.HCM)
 
-Kính trình: ${r.co_quan||'UBND có thẩm quyền'}
+Kính trình: ${vals['{{CO_QUAN}}']||'UBND có thẩm quyền'}
 
-I. THÔNG TIN HỘ GIA ĐÌNH / CÁ NHÂN
+────────────────────────────────────────────
+I. THÔNG TIN CHỦ SỬ DỤNG ĐẤT
 
-1. Họ tên chủ sử dụng đất: ${r.chu}
-2. Số CCCD/CMND: ${r.cccd||'(chưa nhập)'}
-3. Địa chỉ thường trú: ${r.dia_chi||'(chưa nhập)'}
+1. Họ và tên:       ${r.chu||''}
+2. Số CCCD/CMND:    ${r.cccd||''}
+3. Số điện thoại:   ${r.sdt||''}
+4. Địa chỉ TT:      ${r.diachi||r.dia_chi||''}
 
+────────────────────────────────────────────
 II. THÔNG TIN THỬA ĐẤT BỊ THU HỒI
 
-1. Số thửa: ${r.so_thua||'(chưa nhập)'}, Tờ bản đồ số: ${r.to_ban_do||'(chưa nhập)'}
-2. Loại đất: ${loaiLabels[r.loai]||r.loai}
-3. Diện tích theo Giấy chứng nhận: ${r.dt} m²
-4. Diện tích thu hồi: ${r.dtTH} m² (${Math.round(r.ty_le_thu_hoi*100)}% tổng diện tích)
-5. Nguồn gốc sử dụng đất: ${nguonLabels[r.nguon]}
-6. Giấy chứng nhận QSDĐ: ${gcnLabels[r.gcn]}
-7. Thời điểm bắt đầu sử dụng: ${thoiLabels[r.thoi]}
-8. Tình trạng sử dụng: ${r.tt==='dung'?'Đúng mục đích, ổn định':r.tt==='sai'?'Sử dụng sai mục đích':'Vi phạm pháp luật đất đai'}
+1. Số thửa:         ${r.thua||r.so_thua||''}        Tờ bản đồ số: ${r.to||r.to_ban_do||''}
+2. Loại đất:        ${LOAI_LABELS[r.loai]||r.loai||''}
+3. Vị trí đất:      Vị trí ${r.vitri||''}
+4. DT theo GCN:     ${r.dt||0} m²     DT thu hồi: ${r.dtHL||r.dtth||0} m² (${Math.round((r.tyLe||0)*100)}%)
+5. Nguồn gốc SDĐ:  ${NGUON_LABELS[r.nguongoc]||r.nguongoc||''}
+6. Giấy CN QSDĐ:   ${GCN_LABELS[r.gcn]||r.gcn||''}
+7. Thời điểm SDĐ:  ${r.thoidiem||''}
+8. Tình trạng SDĐ: ${r.tinhTrang==='dung'?'Đúng mục đích':r.tinhTrang==='sai'?'Sử dụng sai mục đích':'Vi phạm PL đất đai'}
 
+────────────────────────────────────────────
 III. THÔNG TIN DỰ ÁN
 
-- Tên dự án: ${r.ten_da||'(chưa nhập)'}
-- Số quyết định thu hồi đất: ${r.so_qd||'(chưa nhập)'}
-- Ngày ký: ${fdate(r.ngay_qd)}
-- Cơ quan ban hành: ${r.co_quan||'(chưa nhập)'}
+Tên dự án:    ${r.duan||r.ten_da||''}
+Số QĐ THĐ:   ${r.soqd||r.so_qd||''}   Ngày ký: ${r.ngayqd?fdate(r.ngayqd):''}
+Cơ quan BH:   ${vals['{{CO_QUAN}}']||''}
 
+────────────────────────────────────────────
 IV. KẾT QUẢ THẨM ĐỊNH ĐIỀU KIỆN BỒI THƯỜNG
 
 Căn cứ Điều 95, 96 Luật Đất đai 2024:
-→ ${r.du_bt?'ĐỦ ĐIỀU KIỆN bồi thường về đất.':'KHÔNG ĐỦ ĐIỀU KIỆN bồi thường về đất.'}
-→ ${r.ly_do}
+→ ${r.duBT?'ĐỦ ĐIỀU KIỆN bồi thường về đất.':'KHÔNG ĐỦ ĐIỀU KIỆN bồi thường về đất.'}
+→ ${r.lyDo||''}
+→ Hệ số điều chỉnh K áp dụng: ${r.hesoK||1}
+→ Giá đất cụ thể sau hệ số: ${fmtN(r.giaThuc||r.gia||0)} đ/m²
 
+────────────────────────────────────────────
 V. PHƯƠNG ÁN BỒI THƯỜNG CỤ THỂ
 
 A. BỒI THƯỜNG VỀ ĐẤT (Điều 95–100 LĐĐ 2024):
-${r.du_bt?
-'  - Diện tích bồi thường: '+r.dtTH+' m²\n  - Giá đất cụ thể được phê duyệt: '+vn2(r.gia)+' đ/m²\n  - Thành tiền: '+vn(r.bt_dat):
-'  Không đủ điều kiện – không bồi thường về đất.'}
+${r.duBT?'  Diện tích BT: '+r.dtHL+' m²\n  Giá đất cụ thể: '+fmtN(r.gia||0)+' đ/m² × K='+r.hesoK+'\n  Giá sau hệ số: '+fmtN(r.giaThuc||0)+' đ/m²\n  Thành tiền: '+fmtMoney(r.btDat||0):'  Không đủ điều kiện – không bồi thường về đất.'}
 
 B. BỒI THƯỜNG TÀI SẢN GẮN LIỀN (Điều 101–107 LĐĐ 2024):
-${asset_txt}
-  Tổng bồi thường tài sản: ${vn(r.bt_ts)}
+${assetTxt}
+  Tổng BT tài sản: ${fmtMoney(r.btTs||0)}
 
-C. HỖ TRỢ (Điều 108–110 LĐĐ 2024):
-${ht_txt}
-  Tổng hỗ trợ: ${vn(r.tong_ht)}
+C. HỖ TRỢ (Điều 108–110 LĐĐ 2024 & QĐ 5516/QĐ-UBND TP.HCM):
+${htTxt}
+  Tổng hỗ trợ: ${fmtMoney(r.tongHT||0)}
 
 D. TÁI ĐỊNH CƯ (Điều 111 LĐĐ 2024):
-${r.tdc?'→ '+r.tdc_note:'→ Không yêu cầu bố trí tái định cư.'}
+  ${r.tdc?'→ '+r.tdcNote:'→ Không yêu cầu bố trí tái định cư.'}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TỔNG CỘNG (A + B + C): ${vn(r.tong)}
-Bằng chữ: (Bằng chữ số tiền ở đây)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+════════════════════════════════════════════
+TỔNG CỘNG (A + B + C): ${fmtMoney(r.tongCong||0)}
+Bằng chữ: ________________________________________
+════════════════════════════════════════════
 
 VI. KIẾN NGHỊ
 
-Căn cứ kết quả thẩm định, đề nghị ${r.co_quan||'UBND có thẩm quyền'} xem xét, phê duyệt phương án bồi thường, hỗ trợ, tái định cư cho hộ gia đình/cá nhân nêu trên theo quy định tại Điều 86 Luật Đất đai 2024.
+Đề nghị ${vals['{{CO_QUAN}}']||'UBND có thẩm quyền'} xem xét, phê duyệt phương án bồi thường, hỗ trợ, tái định cư nêu trên theo quy định tại Điều 86 Luật Đất đai 2024.
 
-                              TP.HCM, ${today()}
+                              TP.HCM, ${today}
 
-CHỦ SỬ DỤNG ĐẤT                 CÁN BỘ LẬP PHƯƠNG ÁN
-(Ký, ghi rõ họ tên)              (Ký, ghi rõ họ tên)
+CHỦ SỬ DỤNG ĐẤT              CÁN BỘ THẨM ĐỊNH
+(Ký, ghi rõ họ tên)           (Ký, ghi rõ họ tên)
 
-${r.chu}                         ${r.can_bo||'............................'}
 
-XÁC NHẬN CỦA ỦY BAN NHÂN DÂN CẤP XÃ/PHƯỜNG
-(Ký, đóng dấu)
+${r.chu||'............................'}   ${r.canbo||vals['{{CAN_BO}}']||'............................'}
 
-............................
+            XÁC NHẬN CỦA UBND XÃ/PHƯỜNG
+                 (Ký, đóng dấu)
+
+            ............................
 `;
 }
 
-function genQuyetDinh(r){
-  return `${r.co_quan?r.co_quan.toUpperCase():'ỦY BAN NHÂN DÂN'}
-───────────────────────
+function genQuyetDinh(r,today,vals){
+  return `${(vals['{{CO_QUAN}}']||'ỦY BAN NHÂN DÂN').toUpperCase()}
+────────────────────
 
 Số: ……/QĐ-UBND
 
 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập – Tự do – Hạnh phúc
-────────────────────────────────
+════════════════════════════════════════════
 
-TP.HCM, ${today()}
+                              TP.HCM, ${today}
 
 QUYẾT ĐỊNH
 Về việc phê duyệt phương án bồi thường, hỗ trợ, tái định cư
-cho hộ gia đình/cá nhân khi Nhà nước thu hồi đất thực hiện dự án
-${r.ten_da||'(Tên dự án)'}
+cho hộ gia đình/cá nhân khi Nhà nước thu hồi đất
+thực hiện dự án: ${r.duan||r.ten_da||'(Tên dự án)'}
 
-${r.co_quan?r.co_quan.toUpperCase():'ỦY BAN NHÂN DÂN'}
+${(vals['{{CO_QUAN}}']||'ỦY BAN NHÂN DÂN').toUpperCase()}
 
 Căn cứ Luật Tổ chức chính quyền địa phương ngày 19 tháng 6 năm 2015;
 Căn cứ Luật Đất đai ngày 18 tháng 01 năm 2024;
 Căn cứ Nghị định số 88/2024/NĐ-CP ngày 15 tháng 7 năm 2024 của Chính phủ quy định về bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất;
-Căn cứ Quyết định số 5516/QĐ-UBND ngày … của UBND Thành phố Hồ Chí Minh;
-Căn cứ Quyết định thu hồi đất số ${r.so_qd||'……/QĐ-UBND'} ngày ${fdate(r.ngay_qd)};
-Theo đề nghị của Tổ chức làm nhiệm vụ bồi thường, giải phóng mặt bằng,
+Căn cứ Quyết định số 5516/QĐ-UBND của UBND Thành phố Hồ Chí Minh;
+Căn cứ Quyết định thu hồi đất số ${r.soqd||r.so_qd||'…/QĐ-UBND'} ngày ${r.ngayqd?fdate(r.ngayqd):'…/…/…'};
+Theo đề nghị của Tổ chức làm nhiệm vụ bồi thường, GPMB,
 
 QUYẾT ĐỊNH:
 
 Điều 1. Phê duyệt phương án bồi thường, hỗ trợ, tái định cư đối với:
 
-Họ tên: ${r.chu}
-Số CCCD/CMND: ${r.cccd||'……………………'}
-Địa chỉ: ${r.dia_chi||'……………………'}
+  Họ tên:             ${r.chu||''}
+  Số CCCD/CMND:       ${r.cccd||''}
+  Địa chỉ thường trú: ${r.diachi||r.dia_chi||''}
 
-Thửa đất số ${r.so_thua||'…'}, Tờ bản đồ số ${r.to_ban_do||'…'}, loại đất ${r.loai}, diện tích bị thu hồi ${r.dtTH} m².
+  Thửa đất số ${r.thua||r.so_thua||'…'}, Tờ bản đồ số ${r.to||r.to_ban_do||'…'}, loại đất ${r.loai||''}, diện tích bị thu hồi ${r.dtHL||r.dtth||0} m².
 
-Tổng số tiền bồi thường, hỗ trợ: ${vn(r.tong)}
-Trong đó:
-- Bồi thường về đất: ${vn(r.bt_dat)}
-- Bồi thường tài sản: ${vn(r.bt_ts)}
-- Hỗ trợ: ${vn(r.tong_ht)}
-${r.tdc?'Tái định cư: '+r.tdc_note:'Tái định cư: Không áp dụng.'}
+  Tổng số tiền bồi thường, hỗ trợ: ${fmtMoney(r.tongCong||0)}
+  Trong đó:
+  - Bồi thường về đất:     ${fmtMoney(r.btDat||0)}
+  - Bồi thường tài sản:    ${fmtMoney(r.btTs||0)}
+  - Hỗ trợ:                ${fmtMoney(r.tongHT||0)}
+  - Tái định cư:           ${r.tdc?r.tdcNote:'Không áp dụng'}
 
 Điều 2. Tổ chức thực hiện:
-1. Tổ chức làm nhiệm vụ bồi thường có trách nhiệm chi trả tiền bồi thường, hỗ trợ cho hộ gia đình/cá nhân nêu tại Điều 1 trong thời hạn quy định.
-2. Chủ đầu tư có trách nhiệm bố trí đủ vốn để thực hiện phương án đã được phê duyệt.
-3. Hộ gia đình/cá nhân có trách nhiệm bàn giao mặt bằng đúng thời hạn sau khi nhận đủ tiền bồi thường, hỗ trợ.
+  1. Tổ chức GPMB chi trả tiền bồi thường, hỗ trợ trong thời hạn quy định.
+  2. Chủ đầu tư bố trí đủ vốn thực hiện phương án đã phê duyệt.
+  3. Hộ gia đình/cá nhân bàn giao mặt bằng đúng thời hạn sau khi nhận đủ tiền.
 
-Điều 3. Quyết định này có hiệu lực kể từ ngày ký.
+Điều 3. Quyết định có hiệu lực từ ngày ký.
 
-Chánh Văn phòng UBND, Giám đốc Sở Tài nguyên và Môi trường, Tổ chức làm nhiệm vụ bồi thường, giải phóng mặt bằng, hộ gia đình/cá nhân có tên tại Điều 1 và các cơ quan có liên quan chịu trách nhiệm thi hành Quyết định này.
+Chánh VP UBND, Giám đốc Sở TN&MT, Tổ chức GPMB, hộ gia đình/cá nhân tại Điều 1 và các cơ quan liên quan chịu trách nhiệm thi hành.
 
-                                             TM. ỦY BAN NHÂN DÂN
-                                             CHỦ TỊCH
-                                             (Ký, đóng dấu)
+                                        TM. ỦY BAN NHÂN DÂN
+                                        CHỦ TỊCH / KT.CHỦ TỊCH
+                                        PHÓ CHỦ TỊCH
 
-                                             ............................
+                                        ............................
+                                        ${vals['{{CAN_BO}}']||''}
 `;
 }
 
-function genBienBan(r){
-  var audit_txt=[];
-  var checks=[];
-  function chk(type,title,desc){checks.push({type,title,desc})}
-  chk(r.chu&&r.chu!='(Chưa nhập)'?'ok':'err','Họ tên chủ sử dụng',r.chu);
-  var cl=r.cccd?r.cccd.length:0;
-  chk(cl===9||cl===12?'ok':'warn','Số CCCD/CMND',r.cccd||(cl===9||cl===12?'Hợp lệ':'Cần kiểm tra'));
-  chk(r.loai?'ok':'err','Loại đất',loaiLabels[r.loai]||'Chưa xác định');
-  chk(r.dt>0&&r.dtTH>0&&r.dtTH<=r.dt?'ok':'err','Diện tích thu hồi',r.dtTH+'m² / '+r.dt+'m² ('+Math.round(r.ty_le_thu_hoi*100)+'%)');
-  chk(r.gia>0?'ok':'err','Giá đất cụ thể',vn2(r.gia)+' đ/m²');
-  chk(r.ten_da?'ok':'warn','Tên dự án',r.ten_da||'Chưa nhập');
-  chk(r.so_qd?'ok':'warn','Số quyết định thu hồi',r.so_qd||'Chưa nhập');
-  if(r.tt==='vi_pham')chk('err','Tình trạng vi phạm pháp luật','Cần xử lý vi phạm trước');
-  if(r.tdc&&!r.ck_tdc)chk('warn','Khu TĐC','Chưa có khu TĐC sẵn sàng');
-  if(!r.asset_rows.length)chk('warn','Tài sản trên đất','Chưa khai báo tài sản');
-
-  var ks=checks.filter(c=>c.type==='ok').length;
-  var kw=checks.filter(c=>c.type==='warn').length;
-  var ke=checks.filter(c=>c.type==='err').length;
-
+function genBienBan(r,today,vals){
   return `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập – Tự do – Hạnh phúc
-────────────────────────────────
+════════════════════════════════════════════
 
 BIÊN BẢN KIỂM TRA HỒ SƠ BỒI THƯỜNG
 
-Thời gian: ${today()}
-Địa điểm: Trụ sở làm việc
-Thành phần: Tổ thẩm định phương án bồi thường, giải phóng mặt bằng
+Thời gian:  ${today}
+Địa điểm:   Trụ sở UBND / Tổ chức GPMB
+Thành phần: Tổ thẩm định phương án bồi thường
 
+────────────────────────────────────────────
 I. ĐỐI TƯỢNG KIỂM TRA
 
-Hồ sơ bồi thường của hộ gia đình/cá nhân: ${r.chu}
-Số CCCD/CMND: ${r.cccd||'……………………'}
-Thửa đất: ${r.so_thua||'…'}, Tờ bản đồ: ${r.to_ban_do||'…'}
-Thuộc dự án: ${r.ten_da||'……………………'}
-Quyết định thu hồi số: ${r.so_qd||'……………………'}, ngày ${fdate(r.ngay_qd)}
+  Hộ gia đình/cá nhân: ${r.chu||''}
+  Số CCCD/CMND:        ${r.cccd||''}
+  Thửa đất:            ${r.thua||r.so_thua||''}, Tờ bản đồ: ${r.to||r.to_ban_do||''}
+  Dự án:               ${r.duan||r.ten_da||''}
+  Số QĐ thu hồi:       ${r.soqd||r.so_qd||''}   Ngày: ${r.ngayqd?fdate(r.ngayqd):''}
 
+────────────────────────────────────────────
 II. KẾT QUẢ KIỂM TRA
 
-TT | Nội dung kiểm tra                    | Kết quả    | Ghi chú
----|--------------------------------------|------------|--------
-${checks.map((c,i)=>''+String(i+1).padStart(2,' ')+' | '+c.title.padEnd(38,' ')+' | '+(c.type==='ok'?'Đạt      ':c.type==='warn'?'Cảnh báo':'Lỗi     ')+'| '+c.desc.substring(0,30)).join('\n')}
+  TT | Nội dung kiểm tra              | Kết quả    | Ghi chú
+  ---|--------------------------------|------------|--------
+  01 | Họ tên chủ SDĐ                 | ${r.chu?'Đạt      ':'Chưa đủ '}| ${r.chu||'Chưa nhập'}
+  02 | Số CCCD/CMND                   | ${r.cccd&&(r.cccd.length===9||r.cccd.length===12)?'Đạt      ':'Cảnh báo'}| ${r.cccd||'Chưa nhập'}
+  03 | Loại đất                       | ${r.loai?'Đạt      ':'Lỗi     '}| ${LOAI_LABELS[r.loai]||'Chưa chọn'}
+  04 | Diện tích hợp lệ               | ${r.dt>0&&(r.dtHL||r.dtth||0)<=r.dt?'Đạt      ':'Lỗi     '}| ${r.dtHL||r.dtth||0}/${r.dt||0} m²
+  05 | Giá đất cụ thể                 | ${r.gia>0?'Đạt      ':'Lỗi     '}| ${fmtN(r.gia||0)} đ/m²
+  06 | GCN QSDĐ / Điều kiện BT       | ${r.gcn&&r.gcn!=='khong'?'Đạt      ':'Cảnh báo'}| ${GCN_LABELS[r.gcn]||''}
+  07 | Tên dự án                      | ${r.duan||r.ten_da?'Đạt      ':'Cảnh báo'}| ${r.duan||r.ten_da||'Chưa nhập'}
+  08 | Số QĐ thu hồi đất              | ${r.soqd||r.so_qd?'Đạt      ':'Cảnh báo'}| ${r.soqd||r.so_qd||'Chưa nhập'}
+  09 | Tài sản trên đất               | ${(r.assets||[]).length>0?'Đạt      ':'Cảnh báo'}| ${(r.assets||[]).length+' khoản'}
+  10 | Hệ số điều chỉnh K             | Đạt      | K=${r.hesoK||1}
 
-III. TỔNG HỢP
+────────────────────────────────────────────
+III. KẾT LUẬN VÀ KIẾN NGHỊ
 
-- Số mục đạt yêu cầu: ${ks}/${checks.length}
-- Số cảnh báo: ${kw}
-- Số lỗi cần sửa: ${ke}
+Tổng số tiền bồi thường, hỗ trợ: ${fmtMoney(r.tongCong||0)}
+- Điều kiện BT đất: ${r.duBT?'ĐỦ ĐIỀU KIỆN':'KHÔNG ĐỦ ĐIỀU KIỆN'}
+- ${r.lyDo||''}
 
-IV. KẾT LUẬN VÀ KIẾN NGHỊ
+Đề nghị: ${r.duBT?'Trình lãnh đạo phê duyệt phương án bồi thường.':'Xem xét lại điều kiện bồi thường, bổ sung hồ sơ.'}
 
-${ke>0?'CÒN TỒN TẠI '+ke+' LỖI CẦN KHẮC PHỤC trước khi trình phê duyệt phương án.\n\nCác lỗi cụ thể:\n'+checks.filter(c=>c.type==='err').map((c,i)=>(i+1)+'. '+c.title+': '+c.desc).join('\n'):'Hồ sơ đã cơ bản đáp ứng yêu cầu pháp lý.'}
+                CÁN BỘ THẨM ĐỊNH           TRƯỞNG BỘ PHẬN
+                (Ký, ghi rõ họ tên)        (Ký, ghi rõ họ tên)
 
-${kw>0?'Các nội dung cần bổ sung:\n'+checks.filter(c=>c.type==='warn').map((c,i)=>(i+1)+'. '+c.title+': '+c.desc).join('\n'):''}
 
-Đề nghị: ${ke===0?'Trình lãnh đạo xem xét, phê duyệt phương án bồi thường.':'Yêu cầu bổ sung, hoàn chỉnh hồ sơ trước khi trình phê duyệt.'}
-
-CÁN BỘ THẨM ĐỊNH                TRƯỞNG BỘ PHẬN
-(Ký, ghi rõ họ tên)              (Ký, ghi rõ họ tên)
-
-${r.can_bo||'............................'}    ............................
+                ${r.canbo||vals['{{CAN_BO}}']||'............................'}   ............................
 `;
 }
 
-function genThongBao(r){
-  return `${r.co_quan?r.co_quan.toUpperCase():'ỦY BAN NHÂN DÂN'}
-───────────────────────
+function genThongBao(r,today,vals){
+  return `${(vals['{{CO_QUAN}}']||'ỦY BAN NHÂN DÂN').toUpperCase()}
+────────────────────
 
 Số: ……/TB-UBND
 
 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập – Tự do – Hạnh phúc
-────────────────────────────────
+════════════════════════════════════════════
 
-TP.HCM, ${today()}
+                              TP.HCM, ${today}
 
 THÔNG BÁO
 Về phương án bồi thường, hỗ trợ khi Nhà nước thu hồi đất
 
-Kính gửi: Ông/Bà ${r.chu}
-         (CCCD/CMND: ${r.cccd||'……………………'})
-         Địa chỉ: ${r.dia_chi||'……………………'}
+Kính gửi: Ông/Bà ${r.chu||''}
+          (CCCD/CMND: ${r.cccd||''})
+          Địa chỉ: ${r.diachi||r.dia_chi||''}
 
 Căn cứ Luật Đất đai ngày 18 tháng 01 năm 2024;
 Căn cứ Nghị định số 88/2024/NĐ-CP ngày 15 tháng 7 năm 2024;
-Căn cứ Quyết định thu hồi đất số ${r.so_qd||'……/QĐ-UBND'} ngày ${fdate(r.ngay_qd)};
+Căn cứ QĐ thu hồi đất số ${r.soqd||r.so_qd||'…'} ngày ${r.ngayqd?fdate(r.ngayqd):'…'};
 
-${r.co_quan||'Cơ quan có thẩm quyền'} thông báo phương án bồi thường, hỗ trợ đối với thửa đất số ${r.so_thua||'…'}, Tờ bản đồ số ${r.to_ban_do||'…'} của Ông/Bà như sau:
+${vals['{{CO_QUAN}}']||'Cơ quan có thẩm quyền'} trân trọng thông báo phương án bồi thường đối với thửa đất số ${r.thua||r.so_thua||'…'}, Tờ bản đồ số ${r.to||r.to_ban_do||'…'} của Ông/Bà:
 
-I. THÔNG TIN THỬ ĐẤT BỊ THU HỒI
+────────────────────────────────────────────
+THÔNG TIN THỬA ĐẤT: ${LOAI_LABELS[r.loai]||r.loai||''} · DT thu hồi: ${r.dtHL||r.dtth||0} m²
+Dự án: ${r.duan||r.ten_da||''}
 
-- Loại đất: ${loaiLabels[r.loai]||r.loai}
-- Diện tích bị thu hồi: ${r.dtTH} m²
-- Giá đất bồi thường: ${vn2(r.gia)} đ/m²
-- Thuộc dự án: ${r.ten_da||'……………………'}
+SỐ TIỀN BỒI THƯỜNG, HỖ TRỢ:
 
-II. SỐ TIỀN BỒI THƯỜNG, HỖ TRỢ
+  1. Bồi thường về đất:          ${fmtMoney(r.btDat||0)}
+  2. Bồi thường tài sản:         ${fmtMoney(r.btTs||0)}
+  3. Hỗ trợ:                     ${fmtMoney(r.tongHT||0)}
+${(r.ht||[]).map((h,i)=>'     '+(i+1)+'. '+h.ten+': '+fmtMoney(h.tien)).join('\n')}
 
-1. Bồi thường về đất: ${vn(r.bt_dat)}
-2. Bồi thường tài sản gắn liền: ${vn(r.bt_ts)}
-3. Hỗ trợ: ${vn(r.tong_ht)}
-   ${r.ht.map((h,i)=>(i+1)+'. '+h.ten+': '+vn(h.tien)).join('\n   ')}
+  ════════════════════════════════════════
+  TỔNG SỐ TIỀN NHẬN: ${fmtMoney(r.tongCong||0)}
+  ════════════════════════════════════════
 
-TỔNG SỐ TIỀN NHẬN BỒI THƯỜNG, HỖ TRỢ:
-========================================
-${vn(r.tong)}
-========================================
+${r.tdc?'TÁI ĐỊNH CƯ:\n  '+r.tdcNote+'\n':''}
+────────────────────────────────────────────
+THỜI HẠN VÀ THỦ TỤC NHẬN TIỀN:
 
-${r.tdc?'III. TÁI ĐỊNH CƯ\n\n'+r.tdc_note+'\n\n':''}
-III. THỜI HẠN VÀ THỦ TỤC NHẬN TIỀN
+  Đến tại: ____________________________________
+  Thời hạn: trong vòng 30 ngày kể từ ngày nhận thông báo.
+  Mang theo: CCCD/CMND gốc, GCN QSDĐ (nếu có).
 
-Ông/Bà vui lòng đến: ……………………………………………………
-Thời hạn: trong vòng 30 ngày kể từ ngày nhận thông báo này.
-Mang theo: CCCD/CMND bản gốc và bản sao, Giấy chứng nhận QSDĐ (nếu có).
+QUYỀN KHIẾU NẠI: Ông/Bà có quyền khiếu nại theo Điều 204, 205 LĐĐ 2024 trong 30 ngày.
 
-IV. QUYỀN KHIẾU NẠI
+                                        TM. ỦY BAN NHÂN DÂN
+                                        (Ký, đóng dấu)
 
-Trường hợp không đồng ý với phương án bồi thường, Ông/Bà có quyền khiếu nại theo quy định tại Điều 204, 205 Luật Đất đai 2024 trong thời hạn 30 ngày kể từ ngày nhận thông báo này.
+                                        ............................
 
-Trân trọng thông báo.
+Ông/Bà ${r.chu||''} xác nhận đã nhận thông báo:
+Ngày nhận: ……/……/………         Chữ ký: ............................
+`;
+}
+function genBienBanKe(r,today,vals){
+  return `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập – Tự do – Hạnh phúc
 
-                                             TM. ỦY BAN NHÂN DÂN
-                                             (Ký, đóng dấu)
+BIÊN BẢN KIỂM ĐẾM HIỆN TRẠNG TÀI SẢN
 
-                                             ............................
+Thời gian thực hiện: ${today}
+Địa điểm: Tại thửa đất số ${r.thua||r.so_thua||''}, Tờ bản đồ số ${r.to||r.to_ban_do||''}
 
-Ông/Bà ${r.chu} xác nhận đã nhận thông báo:
-Ngày nhận: ……/……/………
-Chữ ký: ............................
+Thành phần tham dự:
+  - Đại diện Tổ chức GPMB: ............................
+  - Đại diện UBND xã/phường: ............................
+  - Chủ sử dụng đất: ${r.chu||''}
+
+KẾT QUẢ KIỂM ĐẾM:
+
+TT | Tên tài sản          | Diện tích | Đơn giá | Thành tiền
+---|----------------------|-----------|---------|----------
+${(r.assets||[]).map((a,i)=>`${String(i+1).padStart(2,' ')} | ${a.loai.padEnd(20,' ')} | ${String(a.dt||0).padEnd(9,' ')} | ${String(fmtN(a.dn||0)).padEnd(7,' ')} | ${fmtMoney(a.tien||0)}`).join('\n')||'   (Không có tài sản)'}
+
+TỔNG CỘNG TÀI SẢN: ${fmtMoney(r.btTs||0)}
+
+Biên bản được lập thành 03 bản có giá trị ngang nhau.
+
+CHỦ SỬ DỤNG ĐẤT          ĐẠI DIỆN TỔ GPMB         UBND XÃ/PHƯỜNG
+......................    ......................    ......................
+${r.chu||''}
+`;
+}
+function genBienBanGiaoNhan(r,today,vals){
+  return `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập – Tự do – Hạnh phúc
+
+BIÊN BẢN GIAO NHẬN TIỀN BỒI THƯỜNG, HỖ TRỢ
+
+Thời gian:  ${today}
+Địa điểm:   ____________________________________
+
+Bên giao (Tổ chức GPMB):
+  Tên tổ chức: ____________________________________
+  Đại diện:    ____________________________________
+  Chức vụ:     ____________________________________
+
+Bên nhận (Chủ sử dụng đất):
+  Họ và tên:   ${r.chu||''}
+  CCCD/CMND:   ${r.cccd||''}
+  Địa chỉ:     ${r.diachi||r.dia_chi||''}
+
+Thuộc dự án:  ${r.duan||r.ten_da||''}
+Thửa đất số:  ${r.thua||r.so_thua||''}, Tờ bản đồ: ${r.to||r.to_ban_do||''}
+
+SỐ TIỀN GIAO NHẬN:
+
+  1. Bồi thường về đất:          ${fmtMoney(r.btDat||0)}
+  2. Bồi thường tài sản:         ${fmtMoney(r.btTs||0)}
+  3. Hỗ trợ:                     ${fmtMoney(r.tongHT||0)}
+  ════════════════════════════════
+  TỔNG CỘNG: ${fmtMoney(r.tongCong||0)}
+  ════════════════════════════════
+
+Hình thức nhận:  □ Tiền mặt   □ Chuyển khoản
+Số tài khoản (nếu CK): ____________________________________
+
+Hai bên xác nhận đã giao nhận đầy đủ số tiền trên.
+
+BÊN GIAO (GPMB)              BÊN NHẬN (Chủ SDĐ)
+......................         ......................
+                              ${r.chu||''}
 `;
 }
 
-// ===== EXPORT =====
-function doExport(type){
-  if(!R){show('export');return;}
-  var r=R;
-  var titles={phuong_an:'Phương án bồi thường, hỗ trợ, TĐC',quyet_dinh:'Dự thảo quyết định phê duyệt',bien_ban:'Biên bản kiểm tra hồ sơ',thong_bao:'Thông báo gửi hộ dân',toan_bo:'Toàn bộ hồ sơ (4 loại)'};
-  var content='';
-  if(type==='phuong_an') content=genPhuongAn(r);
-  else if(type==='quyet_dinh') content=genQuyetDinh(r);
-  else if(type==='bien_ban') content=genBienBan(r);
-  else if(type==='thong_bao') content=genThongBao(r);
-  else if(type==='toan_bo') content=
-    '══════════════════════════════════════════════\n(1) PHƯƠNG ÁN BỒI THƯỜNG, HỖ TRỢ, TÁI ĐỊNH CƯ\n══════════════════════════════════════════════\n\n'+genPhuongAn(r)+
-    '\n\n══════════════════════════════════════════════\n(2) DỰ THẢO QUYẾT ĐỊNH PHÊ DUYỆT\n══════════════════════════════════════════════\n\n'+genQuyetDinh(r)+
-    '\n\n══════════════════════════════════════════════\n(3) BIÊN BẢN KIỂM TRA HỒ SƠ\n══════════════════════════════════════════════\n\n'+genBienBan(r)+
-    '\n\n══════════════════════════════════════════════\n(4) THÔNG BÁO GỬI HỘ DÂN\n══════════════════════════════════════════════\n\n'+genThongBao(r);
+// ═══════════════════════════════════════════════════
+// KÝ SỐ
+// ═══════════════════════════════════════════════════
+var sigCtx=null, sigDrawing=false, sigHasData=false;
+function initSigCanvas(){
+  var canvas=g('sig-canvas'); if(!canvas||sigCtx)return;
+  sigCtx=canvas.getContext('2d'); sigCtx.strokeStyle='#000'; sigCtx.lineWidth=2; sigCtx.lineCap='round';
+  canvas.addEventListener('mousedown',e=>{sigDrawing=true;sigCtx.beginPath();sigCtx.moveTo(e.offsetX,e.offsetY);});
+  canvas.addEventListener('mousemove',e=>{if(!sigDrawing)return;sigCtx.lineTo(e.offsetX,e.offsetY);sigCtx.stroke();sigHasData=true;canvas.classList.add('has-sig');});
+  canvas.addEventListener('mouseup',()=>sigDrawing=false);
+  canvas.addEventListener('mouseleave',()=>sigDrawing=false);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();sigDrawing=true;var r=canvas.getBoundingClientRect();sigCtx.beginPath();sigCtx.moveTo(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!sigDrawing)return;var r=canvas.getBoundingClientRect();sigCtx.lineTo(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);sigCtx.stroke();sigHasData=true;},{passive:false});
+  canvas.addEventListener('touchend',()=>sigDrawing=false);
+}
+function clearSig(){if(!sigCtx)return;sigCtx.clearRect(0,0,g('sig-canvas').width,g('sig-canvas').height);sigHasData=false;g('sig-canvas').classList.remove('has-sig');STATE.sigData=null;}
+function uploadSig(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=e=>{var img=new Image();img.onload=()=>{if(!sigCtx)initSigCanvas();sigCtx.clearRect(0,0,g('sig-canvas').width,g('sig-canvas').height);sigCtx.drawImage(img,0,0,g('sig-canvas').width,g('sig-canvas').height);sigHasData=true;g('sig-canvas').classList.add('has-sig');STATE.sigData=e.target.result;};img.src=e.target.result;};r.readAsDataURL(f);}
+function uploadStamp(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=e=>{STATE.stampData=e.target.result;showNotify('✅ Đã tải ảnh con dấu','green');};r.readAsDataURL(f);}
 
-  modalText=content;
-  modalTitle=titles[type];
-  g('modal-title').textContent=titles[type]+' – Xem trước';
-  g('modal-body').textContent=content;
-  g('modal').classList.add('open');
+function renderPdfPreview(){
+  var sel=[...document.querySelectorAll('[name="ks_doc"]')].find(r=>r.checked);
+  var docId=sel?sel.value:'phuong_an';
+  var content=genDoc(docId);
+  STATE._currentDocText=content; STATE._currentDocTitle=docId;
+  var watermark=g('opt_watermark')&&g('opt_watermark').checked?'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:60pt;color:rgba(255,0,0,.1);font-weight:900;pointer-events:none;z-index:0">DỰ THẢO</div>':'';
+  g('pdf-preview-content').innerHTML='<div style="position:relative">'+watermark+'<pre style="font-family:\'Times New Roman\',serif;font-size:12pt;line-height:1.8;white-space:pre-wrap;position:relative;z-index:1">'+escHTML(content)+'</pre></div>';
 }
 
-function closeModal(){g('modal').classList.remove('open')}
-
-function dlTxt(){
-  if(!modalText)return;
-  var fn='HoSo-BT-'+((R&&R.chu)||'').replace(/\s+/g,'_')+'-Thua'+(R&&R.so_thua||'')+'_'+new Date().toISOString().slice(0,10)+'.txt';
-  var blob=new Blob(['\uFEFF'+modalText],{type:'text/plain;charset=utf-8'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+// ═══════════════════════════════════════════════════
+// DOWNLOAD FUNCTIONS
+// ═══════════════════════════════════════════════════
+function getCurrentDocText(){
+  if(STATE._currentDocText) return STATE._currentDocText;
+  var sel=[...document.querySelectorAll('[name="ks_doc"]')].find(r=>r.checked);
+  return genDoc(sel?sel.value:'phuong_an');
+}
+function downloadTxt(){
+  var txt=getCurrentDocText()||'';
+  var r=STATE.calcResult||STATE.hoSo||{};
+  var fn='HoSo-BT-'+(r.chu||'').replace(/\s+/g,'_')+'-Thua'+(r.thua||r.so_thua||'')+'-'+now()+'.txt';
+  dlBlob('\uFEFF'+txt,fn,'text/plain;charset=utf-8');
+}
+function downloadHtmlDoc(){
+  var txt=getCurrentDocText()||'';
+  var r=STATE.calcResult||STATE.hoSo||{};
+  var fn='HoSo-BT-'+(r.chu||'').replace(/\s+/g,'_')+'-'+now()+'.html';
+  var html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:'Times New Roman',serif;font-size:13pt;line-height:1.8;margin:2cm;color:#000}pre{font-family:'Times New Roman',serif;white-space:pre-wrap;font-size:13pt}@media print{body{margin:1.5cm}}</style><title>Hồ sơ bồi thường</title></head><body><pre>${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></body></html>`;
+  dlBlob(html,fn,'text/html;charset=utf-8');
+}
+function downloadAllDocs(){
+  if(typeof JSZip==='undefined'){showNotify('Đang tải thư viện zip, vui lòng thử lại...','red');return;}
+  var r=STATE.calcResult||STATE.hoSo||{};
+  var today=new Date().toLocaleDateString('vi-VN');
+  var vals=getPlaceholderValues();
+  var docs=[{id:'phuong_an',name:'1-PhuongAnBoiThuong'},{id:'quyet_dinh',name:'2-DuThaoQuyetDinh'},{id:'bien_ban_kt',name:'3-BienBanKiemTra'},{id:'thong_bao',name:'4-ThongBaoHoDan'}];
+  var zip=new JSZip();
+  docs.forEach(doc=>{var txt=genDoc(doc.id);zip.file(doc.name+'.txt','\uFEFF'+txt);});
+  zip.generateAsync({type:'blob'}).then(blob=>{
+    dlBlob(blob,'HoSo-BT-'+(r.chu||'').replace(/\s+/g,'_')+'-'+now()+'.zip','application/zip');
+    showNotify('✅ Đã xuất toàn bộ hồ sơ (ZIP)','green');
+  });
 }
 
-function dlHtml(){
-  if(!modalText)return;
-  var fn='HoSo-BT-'+((R&&R.chu)||'').replace(/\s+/g,'_')+'-Thua'+(R&&R.so_thua||'')+'_'+new Date().toISOString().slice(0,10)+'.html';
-  var html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-body{font-family:'Times New Roman',serif;font-size:13pt;margin:2cm;line-height:1.8;color:#000}
-pre{font-family:'Times New Roman',serif;white-space:pre-wrap;font-size:13pt;line-height:1.8}
-@media print{body{margin:1.5cm}}
-</style><title>`+modalTitle+`</title></head><body><pre>`+modalText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+`</pre></body></html>`;
-  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+// ═══════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════
+function updateDashboard(){
+  var total=STATE.hoSo?1:0;
+  g('stat-total').textContent=total;
+  g('stat-done').textContent=STATE.calcResult?1:0;
+  g('stat-pending').textContent=STATE.calcResult?0:total;
+  g('stat-total-money').textContent=fmtMoney(STATE.calcResult?STATE.calcResult.tongCong||0:0);
+  if(STATE.hoSo){
+    var r=STATE.calcResult||STATE.hoSo;
+    g('dashboard-recent').innerHTML='<div class="law-item"><div class="law-item-header"><span class="law-item-code">'+r.thua+'</span><span class="law-item-title">'+r.chu+'</span><span class="badge '+(STATE.calcResult?'badge-green':'badge-amber')+'">'+(STATE.calcResult?'Đã tính':'Chờ xử lý')+'</span></div><div class="law-item-body">'+(LOAI_LABELS[r.loai]||r.loai||'')+' · '+(r.dtHL||r.dtth||0)+'m² · '+(STATE.calcResult?fmtMoney(STATE.calcResult.tongCong||0):'Chưa tính')+'</div></div>';
+  }
+  // Update price table
+  var pr=document.getElementById('dashboard-price-rows');
+  if(pr) pr.innerHTML=STATE.giaData.slice(0,5).map(d=>'<tr><td>'+d.ma+'</td><td>VT'+d.vitri+' – '+d.kv+'</td><td class="right mono">'+fmtN(d.gia)+'</td><td class="right mono">'+d.heso+'</td></tr>').join('');
 }
 
-// Close modal on bg click
-g('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+// ═══════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+
+// ═══════════════════════════════════════════════════
+// EXPORT ALL DATA (backup)
+// ═══════════════════════════════════════════════════
+function exportAllData(){
+  var data={giaData:STATE.giaData,hesoData:STATE.hesoData,laws:STATE.laws,wfSteps:STATE.wfSteps,hoSo:STATE.hoSo,calcResult:STATE.calcResult,exported:new Date().toISOString()};
+  dlBlob(JSON.stringify(data,null,2),'backup-btdd-'+now()+'.json','application/json');
+  showNotify('✅ Đã sao lưu toàn bộ dữ liệu','green');
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function g(id){return document.getElementById(id);}
+function fmtN(n){return Math.round(n).toLocaleString('vi-VN');}
+function fmtMoney(n){return Math.round(n).toLocaleString('vi-VN')+' đ';}
+function fdate(str){if(!str)return '';var p=str.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function now(){return new Date().toISOString().slice(0,10);}
+function escHTML(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function dlBlob(content,name,type){var blob=content instanceof Blob?content:new Blob([content],{type});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);}
+
+// ═══════════════════════════════════════════════════
+// SIDEBAR RESIZE
+// ═══════════════════════════════════════════════════
+var resizing=false;
+g('resizer').addEventListener('mousedown',()=>{resizing=true;document.body.style.cursor='col-resize';document.body.style.userSelect='none';});
+document.addEventListener('mousemove',e=>{if(!resizing)return;var sb=g('sidebar');var w=e.clientX;if(w>140&&w<360)sb.style.width=w+'px';});
+document.addEventListener('mouseup',()=>{resizing=false;document.body.style.cursor='';document.body.style.userSelect='';});
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+initState();
+updateDashboard();
+// Init workflow nav badge
+var wfBadge=document.querySelector('[data-panel="law"] .nav-badge');
+if(wfBadge) wfBadge.textContent=STATE.laws.length;
 </script>
 </body>
 </html>
