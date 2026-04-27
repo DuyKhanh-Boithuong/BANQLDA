@@ -938,6 +938,7 @@ progress::-webkit-progress-value{background:var(--blue);border-radius:4px; trans
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('law','list')">Danh sách văn bản</button>
         <button class="tab-btn" onclick="switchTab('law','add')">Thêm văn bản mới</button>
+        <button class="tab-btn" onclick="switchTab('law','upload')">📎 Tải file lên</button>
         <button class="tab-btn" onclick="switchTab('law','search')">Tra cứu điều khoản</button>
       </div>
       <div class="tab-pane active" id="law-list">
@@ -996,6 +997,51 @@ progress::-webkit-progress-value{background:var(--blue);border-radius:4px; trans
           </div>
         </div>
       </div>
+      <div class="tab-pane" id="law-upload">
+        <div class="info-box info-gold">📎 Tải lên văn bản pháp lý dưới dạng file. Hệ thống lưu trữ để tra cứu và đính kèm vào hồ sơ.</div>
+        <div class="grid-2" style="gap:20px;margin-bottom:20px">
+          <div class="upload-zone" id="law-pdf-drop"
+               onclick="document.getElementById('law-pdf-file').click()"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleLawFileDrop(event,'pdf')">
+            <div class="upload-zone-icon">📄</div>
+            <div class="upload-zone-text">Tải lên văn bản PDF</div>
+            <div class="upload-zone-sub">Quyết định, Nghị định, Thông tư... định dạng .pdf</div>
+          </div>
+          <input type="file" id="law-pdf-file" accept=".pdf" style="display:none" onchange="uploadLawFile(this,'pdf')">
+
+          <div class="upload-zone" id="law-excel-drop"
+               onclick="document.getElementById('law-excel-file').click()"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleLawFileDrop(event,'excel')">
+            <div class="upload-zone-icon">📊</div>
+            <div class="upload-zone-text">Tải lên bảng giá / phụ lục Excel</div>
+            <div class="upload-zone-sub">Bảng giá đất, phụ lục kèm theo .xlsx / .xls</div>
+          </div>
+          <input type="file" id="law-excel-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="uploadLawFile(this,'excel')">
+        </div>
+
+        <div class="upload-zone" id="law-word-drop" style="margin-bottom:20px"
+             onclick="document.getElementById('law-word-file').click()"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleLawFileDrop(event,'word')">
+          <div class="upload-zone-icon">📝</div>
+          <div class="upload-zone-text">Tải lên văn bản Word (.docx)</div>
+          <div class="upload-zone-sub">Quyết định, biên bản, phương án đã có sẵn định dạng Word</div>
+        </div>
+        <input type="file" id="law-word-file" accept=".docx,.doc" style="display:none" onchange="uploadLawFile(this,'word')">
+
+        <div class="card">
+          <div class="card-title">📂 File đã tải lên</div>
+          <div id="law-file-list">
+            <div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:24px">📁</div><div class="empty-sub">Chưa có file nào được tải lên</div></div>
+          </div>
+        </div>
+      </div>
+
       <div class="tab-pane" id="law-search">
         <div class="law-search">
           <input class="fi" id="law-article-search" placeholder="Nhập từ khóa: bồi thường, điều kiện, hỗ trợ, tái định cư..." style="flex:1" oninput="searchArticles(this.value)">
@@ -1046,16 +1092,33 @@ progress::-webkit-progress-value{background:var(--blue);border-radius:4px; trans
         <div class="tmpl-list" id="tmpl-grid"></div>
       </div>
       <div class="tab-pane" id="bm-upload">
-        <div class="info-box info-blue">📤 Tải lên biểu mẫu Word (.docx) hoặc văn bản (.txt) của bạn. Đặt các placeholder như <code style="background:var(--gray1);padding:2px 6px;border-radius:4px;font-family:var(--mono)">{{TEN_CHU}}</code>... để hệ thống tự điền.</div>
-        <div class="upload-zone" onclick="document.getElementById('tmpl-file').click()">
-          <div class="upload-zone-icon">📝</div>
-          <div class="upload-zone-text">Tải lên biểu mẫu của bạn</div>
-          <div class="upload-zone-sub">Hỗ trợ: .txt, .docx (Word)</div>
+        <div class="info-box info-blue">📤 Tải lên biểu mẫu của bạn. Đặt các placeholder như <code style="background:var(--gray1);padding:2px 6px;border-radius:4px;font-family:var(--mono)">{{TEN_CHU}}</code> để hệ thống tự điền dữ liệu hồ sơ.</div>
+        <div class="grid-3" style="gap:16px;margin-bottom:20px">
+          <div class="upload-zone" onclick="document.getElementById('tmpl-txt-file').click()" style="cursor:pointer">
+            <div class="upload-zone-icon">📃</div>
+            <div class="upload-zone-text">Biểu mẫu Text</div>
+            <div class="upload-zone-sub">.txt – Đơn giản, nhanh nhất</div>
+          </div>
+          <input type="file" id="tmpl-txt-file" accept=".txt" style="display:none" onchange="uploadTemplate(this)">
+
+          <div class="upload-zone" onclick="document.getElementById('tmpl-word-file').click()" style="cursor:pointer">
+            <div class="upload-zone-icon">📝</div>
+            <div class="upload-zone-text">Biểu mẫu Word</div>
+            <div class="upload-zone-sub">.docx – Có định dạng đầy đủ</div>
+          </div>
+          <input type="file" id="tmpl-word-file" accept=".docx,.doc" style="display:none" onchange="uploadTemplate(this)">
+
+          <div class="upload-zone" onclick="document.getElementById('tmpl-excel-file').click()" style="cursor:pointer">
+            <div class="upload-zone-icon">📊</div>
+            <div class="upload-zone-text">Biểu mẫu Excel</div>
+            <div class="upload-zone-sub">.xlsx – Phương án, bảng tính</div>
+          </div>
+          <input type="file" id="tmpl-excel-file" accept=".xlsx,.xls" style="display:none" onchange="uploadTemplateExcel(this)">
         </div>
-        <input type="file" id="tmpl-file" accept=".txt,.docx" style="display:none" onchange="uploadTemplate(this)">
-        <div class="card" style="margin-top:20px">
-          <div class="card-title">📌 Danh sách placeholder có thể dùng</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+
+        <div class="card">
+          <div class="card-title">📌 Danh sách placeholder có thể dùng trong file .txt / .docx</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px">
             <div id="placeholder-list"></div>
           </div>
         </div>
@@ -2099,69 +2162,322 @@ ${r.chu||'............................'}   ${r.canbo||vals['{{CAN_BO}}']||'.....
 }
 
 function genQuyetDinh(r,today,vals){
-  return `${(vals['{{CO_QUAN}}']||'ỦY BAN NHÂN DÂN').toUpperCase()}
-────────────────────
+  var coquan=(g('ks_coquan')&&g('ks_coquan').value)||'UBND PHƯỜNG BÌNH QUỚI';
+  var nguoiky=(g('ks_nguoiky')&&g('ks_nguoiky').value)||'Đặng Minh Nguyên';
+  var chucdanh=(g('ks_chucdanh')&&g('ks_chucdanh').value)||'PHÓ CHỦ TỊCH';
+  var duan=r.duan||'Khu đô thị mới Bình Quới – Thanh Đa';
+  var soqd=r.soqd||'……/QĐ-UBND';
+  var ngayqd=r.ngayqd?fdate(r.ngayqd):'……/……/……';
+  var htList=(r.ht||[]).map((h,i)=>'     '+(i+1)+'. '+h.ten+': '+fmtMoney(h.tien)+'\n        Căn cứ: '+h.can_cu+(h.note?' ('+h.note+')':'')).join('\n');
+  var asList=(r.assets||[]).map((a,i)=>'     '+(i+1)+'. '+a.loai+': '+a.dt+' m² × '+fmtN(a.dn)+' đ/m² = '+fmtMoney(a.tien)).join('\n');
+  return `${coquan.toUpperCase()}          CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+────────────────────                   Độc lập – Tự do – Hạnh phúc
+                                       ─────────────────────────────
 
-Số: ……/QĐ-UBND
+Số: ${soqd}              TP. Hồ Chí Minh, ngày ${today}
 
-CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-Độc lập – Tự do – Hạnh phúc
-════════════════════════════════════════════
 
-                              TP.HCM, ${today}
+                              QUYẾT ĐỊNH
+          Về việc phê duyệt Phương án chi tiết về bồi thường, hỗ trợ,
+          tái định cư khi Nhà nước thu hồi đất đối với ${r.chu||'……………………………'},
+          địa chỉ giải tỏa: ${r.diachi||'…………………………………………………………………'}
+          để thực hiện dự án ${duan}
 
-QUYẾT ĐỊNH
-Về việc phê duyệt phương án bồi thường, hỗ trợ, tái định cư
-cho hộ gia đình/cá nhân khi Nhà nước thu hồi đất
-thực hiện dự án: ${r.duan||vals['{{TEN_DU_AN}}']}
+──────────────────────────────────────────────────────────────────
+${coquan.toUpperCase()}
 
-${(vals['{{CO_QUAN}}']||'ỦY BAN NHÂN DÂN').toUpperCase()}
-
-Căn cứ Luật Tổ chức chính quyền địa phương ngày 19 tháng 6 năm 2015;
-Căn cứ Luật Đất đai ngày 18 tháng 01 năm 2024;
-Căn cứ Nghị định số 88/2024/NĐ-CP ngày 15 tháng 7 năm 2024 của Chính phủ quy định về bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất;
-Căn cứ Quyết định số 5516/QĐ-UBND của UBND Thành phố Hồ Chí Minh;
-Căn cứ Quyết định thu hồi đất số ${r.soqd||'…/QĐ-UBND'} ngày ${r.ngayqd?fdate(r.ngayqd):'…/…/…'};
-Theo đề nghị của Tổ chức làm nhiệm vụ bồi thường, GPMB,
+  Căn cứ Luật Tổ chức chính quyền địa phương ngày 16 tháng 6 năm 2025;
+  Căn cứ Luật Đất đai số 31/2024/QH15 ngày 18 tháng 01 năm 2024, được sửa đổi, bổ sung tại Luật Đất đai số 43/2024/QH15 ngày 29 tháng 6 năm 2024;
+  Căn cứ Nghị định số 71/2024/NĐ-CP ngày 27 tháng 6 năm 2024 của Chính phủ quy định về giá đất;
+  Căn cứ Nghị định số 88/2024/NĐ-CP ngày 15 tháng 7 năm 2024 của Chính phủ quy định về bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất;
+  Căn cứ Nghị định số 95/2024/NĐ-CP ngày 24 tháng 7 năm 2024 của Chính phủ quy định chi tiết một số điều của Luật Nhà ở;
+  Căn cứ Quyết định số 68/2024/QĐ-UBND ngày 25 tháng 9 năm 2024 của UBND Thành phố ban hành Quy định về bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất trên địa bàn Thành phố Hồ Chí Minh;
+  Căn cứ Quyết định số 98/2024/QĐ-UBND ngày 30 tháng 10 năm 2024 của UBND Thành phố quy định về mức hỗ trợ giải quyết việc làm và đào tạo nghề cho người có đất thu hồi trên địa bàn Thành phố Hồ Chí Minh;
+  Căn cứ Quyết định thu hồi đất số ${soqd} ngày ${ngayqd};
+  Xét Phương án chi tiết của Hội đồng Bồi thường, hỗ trợ, tái định cư dự án về bồi thường, hỗ trợ, tái định cư đối với ${r.chu||'……………………………'};
+  Theo đề nghị của Hội đồng bồi thường, hỗ trợ, tái định cư dự án và phòng Tài nguyên và Môi trường,
 
 QUYẾT ĐỊNH:
 
-Điều 1. Phê duyệt phương án bồi thường, hỗ trợ, tái định cư đối với:
+Điều 1. Phê duyệt Phương án chi tiết về bồi thường, hỗ trợ, tái định cư đối với:
 
-  Họ tên:             ${r.chu||''}
-  Số CCCD/CMND:       ${r.cccd||''}
-  Địa chỉ thường trú: ${r.diachi||''}
+  Họ và tên    : ${r.chu||''}
+  Số CCCD/CMND : ${r.cccd||''}
+  Địa chỉ TT   : ${r.diachi||''}
+  Điện thoại   : ${r.sdt||''}
 
-  Thửa đất số ${r.thua||'…'}, Tờ bản đồ số ${r.to||'…'}, loại đất ${r.loai||''}, diện tích bị thu hồi ${r.dtHL||0} m².
+  Thửa đất số ${r.thua||'…'}, Tờ bản đồ số ${r.to||'…'}
+  Loại đất: ${LOAI_LABELS[r.loai]||r.loai||''} (${r.loai||''}) – Vị trí: ${r.vitri||''}
+  Diện tích theo GCN: ${r.dt||0} m²  –  Diện tích thu hồi: ${r.dtHL||0} m²
 
   Tổng số tiền bồi thường, hỗ trợ: ${fmtMoney(r.tongCong||0)}
+  Bằng chữ: ……………………………………………………………………………………………………………………
   Trong đó:
-  - Bồi thường về đất:     ${fmtMoney(r.btDat||0)}
-  - Bồi thường tài sản:    ${fmtMoney(r.btTs||0)}
-  - Hỗ trợ:                ${fmtMoney(r.tongHT||0)}
-  - Tái định cư:           ${r.tdc?r.tdcNote:'Không áp dụng'}
+  a) Bồi thường về đất (Điều 95–100 LĐĐ 2024):
+     Diện tích BT: ${r.dtHL||0} m² × Giá: ${fmtN(r.gia||0)} đ/m² × K=${r.hesoK||1} = ${fmtMoney(r.btDat||0)}
+     ${!r.duBT?'(Không đủ điều kiện BT đất: '+r.lyDo+')':''}
+  b) Bồi thường tài sản gắn liền với đất (Điều 101–107 LĐĐ 2024):
+${asList||'     (Không có tài sản trên đất)'}
+     Tổng BT tài sản: ${fmtMoney(r.btTs||0)}
+  c) Hỗ trợ (Điều 108–110 LĐĐ 2024 & QĐ 98/2024/QĐ-UBND):
+${htList||'     (Không có khoản hỗ trợ)'}
+     Tổng hỗ trợ: ${fmtMoney(r.tongHT||0)}
+  d) Tái định cư (Điều 111 LĐĐ 2024): ${r.tdc?r.tdcNote:'Không áp dụng'}
 
-Điều 2. Tổ chức thực hiện:
-  1. Tổ chức GPMB chi trả tiền bồi thường, hỗ trợ trong thời hạn quy định.
-  2. Chủ đầu tư bố trí đủ vốn thực hiện phương án đã phê duyệt.
-  3. Hộ gia đình/cá nhân bàn giao mặt bằng đúng thời hạn sau khi nhận đủ tiền.
+  (Đính kèm Phương án chi tiết số …/PA-HĐBT của Hội đồng Bồi thường, hỗ trợ, tái định cư dự án)
 
-Điều 3. Quyết định có hiệu lực từ ngày ký.
+Điều 2. Nhiệm vụ, trách nhiệm các bên liên quan:
 
-Chánh VP UBND, Giám đốc Sở TN&MT, Tổ chức GPMB, hộ gia đình/cá nhân tại Điều 1 và các cơ quan liên quan chịu trách nhiệm thi hành.
+  1. Ban Bồi thường giải phóng mặt bằng:
+  - Gửi Phương án đã được phê duyệt tại Điều 1 cho ${r.chu||'người có đất thu hồi'} theo quy định.
+  - Chi trả tiền bồi thường, hỗ trợ theo phương án đã phê duyệt trong thời hạn theo quy định.
+  - Trường hợp người có đất thu hồi không nhận tiền, tiền bồi thường được gửi vào tài khoản tiền gửi của Ban Bồi thường tại ngân hàng thương mại do Nhà nước nắm giữ cổ phần chi phối theo lãi suất không kỳ hạn. Tiền lãi được trả cho ${r.chu||'người có đất thu hồi'}.
+  - Hướng dẫn chính sách tái định cư theo quy định (nếu có).
 
-                                        TM. ỦY BAN NHÂN DÂN
-                                        CHỦ TỊCH / KT.CHỦ TỊCH
-                                        PHÓ CHỦ TỊCH
+  2. ${r.chu||'Người có đất thu hồi'}:
+  - Liên hệ Ban Bồi thường, giải phóng mặt bằng làm thủ tục nhận tiền bồi thường, hỗ trợ.
+  - Bàn giao mặt bằng đúng thời hạn sau khi đã nhận đủ tiền.
 
-                                        ............................
-                                        ${vals['{{CAN_BO}}']||''}
-`;
-}
-function genBienBan(r,today,vals){return `BIÊN BẢN KIỂM TRA HỒ SƠ...\n(Đã được tạo tự động cho ${r.chu})`;}
-function genThongBao(r,today,vals){return `THÔNG BÁO THU HỒI ĐẤT VÀ PHƯƠNG ÁN BỒI THƯỜNG\nKính gửi: ${r.chu}\n...`;}
-function genBienBanKe(r,today,vals){return `BIÊN BẢN KIỂM ĐẾM HIỆN TRẠNG TÀI SẢN...\nChủ sở hữu: ${r.chu}`; }
-function genBienBanGiaoNhan(r,today,vals){return `BIÊN BẢN GIAO NHẬN TIỀN...\nTên người nhận: ${r.chu}\nSố tiền: ${fmtMoney(r.tongCong||0)}`;}
+Điều 3. Quyết định này có hiệu lực thi hành từ ngày ký.
+
+Điều 4. Chánh Văn phòng UBND, Chủ tịch Hội đồng bồi thường, hỗ trợ, tái định cư dự án, Trưởng phòng Tài nguyên và Môi trường, Trưởng Ban Bồi thường giải phóng mặt bằng và ${r.chu||'người có đất thu hồi'} chịu trách nhiệm thi hành Quyết định này./.
+
+──────────────────────────────────────────────────────────────────
+Nơi nhận:                                KT. CHỦ TỊCH
+- Như Điều 4;                            ${chucdanh}
+- UBND Thành phố (để báo cáo);
+- Sở Tài nguyên và Môi trường;
+- Lưu: VT-TNMT.
+                                         ${nguoiky}
+`;}
+
+function genBienBan(r,today,vals){
+  var coquan=(g('ks_coquan')&&g('ks_coquan').value)||'UBND PHƯỜNG BÌNH QUỚI';
+  var canbo=r.canbo||(g('ks_nguoiky')&&g('ks_nguoiky').value)||'';
+  var checks=[
+    {ok:!!r.chu,label:'Họ tên chủ sử dụng đất',val:r.chu||'Chưa nhập'},
+    {ok:!!(r.cccd&&(r.cccd.replace(/\D/g,'').length===9||r.cccd.replace(/\D/g,'').length===12)),label:'Số CCCD/CMND hợp lệ',val:r.cccd||'Chưa nhập'},
+    {ok:!!r.loai,label:'Loại đất',val:LOAI_LABELS[r.loai]||r.loai||'Chưa chọn'},
+    {ok:r.dt>0&&r.dtth>0&&(r.dtth||0)<=(r.dt||1),label:'Diện tích thu hồi hợp lệ',val:(r.dtHL||0)+'m² / '+(r.dt||0)+'m² ('+Math.round((r.tyLe||0)*100)+'%)'},
+    {ok:r.gia>0,label:'Giá đất cụ thể',val:r.gia>0?fmtN(r.gia)+' đ/m²':'Chưa nhập'},
+    {ok:r.gcn==='co'||r.gcn==='du_dk',label:'Giấy chứng nhận QSDĐ',val:r.gcn==='co'?'Có GCN':r.gcn==='du_dk'?'Đủ ĐK cấp':'Không có GCN'},
+    {ok:r.tinhTrang!=='vi_pham',label:'Tình trạng sử dụng đất',val:r.tinhTrang==='dung'?'Đúng mục đích, ổn định':'Có vấn đề'},
+    {ok:!!r.duBT,label:'Điều kiện bồi thường về đất',val:r.duBT?'Đủ điều kiện (Điều 95 LĐĐ 2024)':'Không đủ điều kiện'},
+  ];
+  var okCount=checks.filter(c=>c.ok).length;
+  var cl=checks.map((c,i)=>'  '+(i+1)+'. '+c.label+':\n     Kết quả: ['+( c.ok?'✓ HỢP LỆ':'✗ CẦN XEM XÉT')+'] – '+c.val).join('\n');
+  return `${coquan.toUpperCase()}          CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+────────────────────                   Độc lập – Tự do – Hạnh phúc
+                                       ─────────────────────────────
+
+                  BIÊN BẢN KIỂM TRA HỒ SƠ
+     Bồi thường, hỗ trợ, tái định cư khi Nhà nước thu hồi đất
+
+Ngày kiểm tra   : ${today}
+Cán bộ thẩm định: ${canbo}
+Căn cứ          : Luật Đất đai 2024, NĐ 88/2024/NĐ-CP, QĐ 68/2024/QĐ-UBND TP.HCM
+
+──────────────────────────────────────────────────────────────────
+
+I. THÔNG TIN HỒ SƠ ĐƯỢC KIỂM TRA
+
+  Chủ sử dụng đất : ${r.chu||''}
+  Số CCCD/CMND    : ${r.cccd||''}
+  Địa chỉ TT      : ${r.diachi||''}
+  Điện thoại      : ${r.sdt||''}
+  Thửa số         : ${r.thua||''},  Tờ bản đồ số: ${r.to||''}
+  Loại đất        : ${LOAI_LABELS[r.loai]||r.loai||''}  (${r.loai||''})
+  DT GCN / Thu hồi: ${r.dt||0} m² / ${r.dtHL||0} m²
+  Tên dự án       : ${r.duan||''}
+  Số QĐ thu hồi   : ${r.soqd||''}   Ngày ký: ${r.ngayqd?fdate(r.ngayqd):''}
+
+──────────────────────────────────────────────────────────────────
+
+II. KẾT QUẢ KIỂM TRA PHÁP LÝ TỰ ĐỘNG
+    (${okCount}/${checks.length} mục hợp lệ – Điểm hồ sơ: ${Math.round(okCount/checks.length*100)}%)
+
+${cl}
+
+──────────────────────────────────────────────────────────────────
+
+III. KẾT QUẢ TÍNH TOÁN BỒI THƯỜNG
+
+  Bồi thường đất          : ${fmtMoney(r.btDat||0)}
+  Bồi thường tài sản      : ${fmtMoney(r.btTs||0)}
+  Tổng hỗ trợ             : ${fmtMoney(r.tongHT||0)}
+  ──────────────────────────────────────────────
+  TỔNG CỘNG               : ${fmtMoney(r.tongCong||0)}
+
+IV. KẾT LUẬN
+
+  ${okCount===checks.length?'Hồ sơ đầy đủ, hợp lệ về pháp lý. Đề nghị trình phê duyệt phương án bồi thường chính thức.':'Hồ sơ chưa đầy đủ/hợp lệ. Cần bổ sung, chỉnh sửa các mục [✗] trước khi trình phê duyệt.'}
+
+  Cán bộ thẩm định                      Xác nhận cơ quan
+  (Ký, ghi rõ họ tên)                   (Ký tên, đóng dấu)
+
+
+  ${canbo}                       ………………………………
+`;}
+function genThongBao(r,today,vals){
+  var coquan=(g('ks_coquan')&&g('ks_coquan').value)||'UBND PHƯỜNG BÌNH QUỚI';
+  var duan=r.duan||'Khu đô thị mới Bình Quới – Thanh Đa';
+  var htList=(r.ht||[]).map((h,i)=>'     '+(i+1)+'. '+h.ten+': '+fmtMoney(h.tien)+'\n        Căn cứ: '+h.can_cu).join('\n');
+  return `${coquan.toUpperCase()}          CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+────────────────────                   Độc lập – Tự do – Hạnh phúc
+                                       ─────────────────────────────
+
+                              THÔNG BÁO
+          Về phương án bồi thường, hỗ trợ, tái định cư khi
+                   Nhà nước thu hồi đất
+
+                                    TP. Hồ Chí Minh, ngày ${today}
+
+Kính gửi: Ông/Bà ${r.chu||'………………………………………………………………'}
+          Địa chỉ: ${r.diachi||'……………………………………………………………………………'}
+
+──────────────────────────────────────────────────────────────────
+
+Căn cứ Quyết định của ${coquan} về việc phê duyệt phương án bồi thường, hỗ trợ, tái định cư,
+
+${coquan.toUpperCase()} xin thông báo đến Ông/Bà ${r.chu||''} nội dung phương án bồi thường, hỗ trợ, tái định cư như sau:
+
+I. THÔNG TIN THỬA ĐẤT BỊ THU HỒI
+
+  Thửa số: ${r.thua||''},  Tờ bản đồ số: ${r.to||''}
+  Loại đất: ${LOAI_LABELS[r.loai]||r.loai||''} (${r.loai||''}) – Vị trí: ${r.vitri||''}
+  Diện tích theo GCN: ${r.dt||0} m²  –  Diện tích bị thu hồi: ${r.dtHL||0} m²
+  Dự án: ${duan}
+  Số QĐ thu hồi: ${r.soqd||''}  –  Ngày ký: ${r.ngayqd?fdate(r.ngayqd):''}
+
+II. PHƯƠNG ÁN BỒI THƯỜNG, HỖ TRỢ
+
+  a) Bồi thường về đất: ${fmtMoney(r.btDat||0)}
+     (${r.dtHL||0} m² × ${fmtN(r.giaThuc||r.gia||0)} đ/m²)
+
+  b) Bồi thường tài sản gắn liền với đất: ${fmtMoney(r.btTs||0)}
+
+  c) Hỗ trợ: ${fmtMoney(r.tongHT||0)}
+${htList||'     (Không có khoản hỗ trợ)'}
+
+  d) Tái định cư: ${r.tdc?r.tdcNote:'Không áp dụng'}
+
+  ──────────────────────────────────────────────────────
+  TỔNG SỐ TIỀN BỒI THƯỜNG, HỖ TRỢ: ${fmtMoney(r.tongCong||0)}
+  Bằng chữ: ……………………………………………………………………………………………………
+  ──────────────────────────────────────────────────────
+
+III. THỜI GIAN VÀ ĐỊA ĐIỂM NHẬN TIỀN
+
+  Ông/Bà vui lòng liên hệ Ban Bồi thường, giải phóng mặt bằng để hoàn tất thủ tục nhận tiền bồi thường, hỗ trợ trong thời hạn theo quy định.
+
+  Mọi thắc mắc liên hệ: …………………………………………………………………………
+
+Trân trọng thông báo./.
+
+                                        TM. ${coquan.toUpperCase()}
+                                        CHỦ TỊCH
+
+                                        ………………………………………
+`;}
+function genBienBanKe(r,today,vals){
+  var coquan=(g('ks_coquan')&&g('ks_coquan').value)||'UBND PHƯỜNG BÌNH QUỚI';
+  var canbo=r.canbo||(g('ks_nguoiky')&&g('ks_nguoiky').value)||'';
+  var asList=(r.assets||[]).length
+    ? (r.assets||[]).map((a,i)=>'  '+String(i+1).padStart(2,'0')+'  '+a.loai.substring(0,38).padEnd(40,' ')+String(a.dt).padStart(8)+'    '+fmtN(a.dn).padStart(16)+' đ/m²    '+fmtMoney(a.tien)).join('\n')
+    : '      (Không có tài sản trên đất)';
+  return `${coquan.toUpperCase()}          CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+────────────────────                   Độc lập – Tự do – Hạnh phúc
+                                       ─────────────────────────────
+
+                  BIÊN BẢN KIỂM ĐẾM HIỆN TRẠNG TÀI SẢN
+
+Thời gian: …… giờ …… phút, ngày ${today}
+Địa điểm : ${r.diachi||'………………………………………………………………………………'}
+
+Thành phần tham dự:
+  1. Đại diện ${coquan}: ……………………………………………………………………
+  2. Cán bộ thẩm định     : ${canbo}
+  3. Chủ sử dụng đất      : ${r.chu||''}  –  Số CCCD/CMND: ${r.cccd||''}
+
+──────────────────────────────────────────────────────────────────
+
+I. THÔNG TIN THỬA ĐẤT
+
+  Thửa số  : ${r.thua||''}  –  Tờ bản đồ số: ${r.to||''}
+  Loại đất : ${LOAI_LABELS[r.loai]||r.loai||''}  –  Vị trí: ${r.vitri||''}
+  DT GCN   : ${r.dt||0} m²  –  DT thu hồi: ${r.dtHL||0} m²
+
+II. BẢNG KIỂM ĐẾM TÀI SẢN GẮN LIỀN VỚI ĐẤT
+
+  STT  Loại tài sản                           DT (m²)   Đơn giá (đ/m²)   Thành tiền
+  ───────────────────────────────────────────────────────────────────────────────────
+${asList}
+  ───────────────────────────────────────────────────────────────────────────────────
+  Tổng bồi thường tài sản: ${fmtMoney(r.btTs||0)}
+
+III. XÁC NHẬN
+
+  Biên bản được lập thành 02 bản có giá trị pháp lý như nhau. Các bên ký xác nhận nội dung là trung thực và chính xác.
+
+  Chủ sử dụng đất                     Cán bộ thẩm định
+  (Ký, ghi rõ họ tên)                (Ký, ghi rõ họ tên)
+
+
+  ${r.chu||''}                          ${canbo}
+`;}
+function genBienBanGiaoNhan(r,today,vals){
+  var coquan=(g('ks_coquan')&&g('ks_coquan').value)||'UBND PHƯỜNG BÌNH QUỚI';
+  var canbo=r.canbo||(g('ks_nguoiky')&&g('ks_nguoiky').value)||'';
+  var htList=(r.ht||[]).map((h,i)=>'  '+(i+1)+'. '+h.ten+': '+fmtMoney(h.tien)).join('\n');
+  return `${coquan.toUpperCase()}          CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+────────────────────                   Độc lập – Tự do – Hạnh phúc
+                                       ─────────────────────────────
+
+                  BIÊN BẢN GIAO NHẬN TIỀN
+          Bồi thường, hỗ trợ khi Nhà nước thu hồi đất
+
+Hôm nay, ngày ${today}
+Tại : ……………………………………………………………………………………………………………………
+
+BÊN GIAO – Ban Bồi thường giải phóng mặt bằng:
+  Ông/Bà : ${canbo}
+  Chức vụ: ………………………………………………………………………………………………
+
+BÊN NHẬN:
+  Họ và tên    : ${r.chu||''}
+  Số CCCD/CMND : ${r.cccd||''}
+  Địa chỉ TT   : ${r.diachi||''}
+
+──────────────────────────────────────────────────────────────────
+
+NỘI DUNG GIAO NHẬN
+
+  Căn cứ Quyết định phê duyệt phương án bồi thường, hỗ trợ, tái định cư của ${coquan},
+  Bên Giao chi trả cho Bên Nhận các khoản tiền sau:
+
+  a) Bồi thường về đất    : ${fmtMoney(r.btDat||0)}
+  b) Bồi thường tài sản   : ${fmtMoney(r.btTs||0)}
+  c) Hỗ trợ các khoản     :
+${htList||'     (Không có khoản hỗ trợ)'}
+     Tổng hỗ trợ          : ${fmtMoney(r.tongHT||0)}
+  ──────────────────────────────────────────────────────
+  TỔNG SỐ TIỀN CHI TRẢ    : ${fmtMoney(r.tongCong||0)}
+  Bằng chữ: ……………………………………………………………………………………………………
+
+  Hình thức thanh toán:  ☐ Tiền mặt   ☐ Chuyển khoản
+  Số tài khoản (nếu CK): ……………………………  Ngân hàng: ………………………
+
+──────────────────────────────────────────────────────────────────
+
+  Bên Nhận xác nhận đã nhận đủ số tiền nêu trên và cam kết bàn giao mặt bằng đúng thời hạn.
+  Biên bản lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.
+
+  BÊN NHẬN                              BÊN GIAO
+  (Ký, ghi rõ họ tên)                   (Ký, ghi rõ họ tên)
+
+
+  ${r.chu||''}                              ${canbo}
+`;}
 
 // ═══════════════════════════════════════════════════
 // KÝ SỐ
@@ -2341,8 +2657,148 @@ function setMobileActive(btn){
 // Mobile nav sync is now handled inside showPanel directly
 
 // ═══════════════════════════════════════════════════
-// CSV EXPORT
+// NGUỒN LUẬT – TẢI FILE PDF/EXCEL/WORD LÊN
 // ═══════════════════════════════════════════════════
+function uploadLawFile(inp, type){
+  var f=inp.files[0]; if(!f) return;
+  var icons={pdf:'📄',excel:'📊',word:'📝'};
+  var entry={
+    id:'lf_'+Date.now(),
+    name:f.name,
+    type:type,
+    icon:icons[type]||'📎',
+    size:f.size,
+    date:new Date().toLocaleDateString('vi-VN'),
+    url:null
+  };
+  var reader=new FileReader();
+  reader.onload=function(e){
+    entry.url=e.target.result;
+    if(!STATE.lawFiles) STATE.lawFiles=[];
+    STATE.lawFiles.push(entry);
+    save('lawFiles', STATE.lawFiles);
+    renderLawFiles();
+    showNotify('✅ Đã tải lên: '+f.name, 'green');
+  };
+  reader.readAsDataURL(f);
+  inp.value='';
+}
+
+function handleLawFileDrop(e, type){
+  e.preventDefault();
+  document.getElementById('law-'+(type==='excel'?'excel':'pdf'===type?'pdf':'word')+'-drop').classList.remove('drag-over');
+  var f=e.dataTransfer.files[0]; if(!f) return;
+  var fakeInp={files:[f],value:''};
+  uploadLawFile(fakeInp, type);
+}
+
+function renderLawFiles(){
+  var list=document.getElementById('law-file-list'); if(!list) return;
+  var files=STATE.lawFiles||[];
+  if(!files.length){
+    list.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:24px">📁</div><div class="empty-sub">Chưa có file nào được tải lên</div></div>';
+    return;
+  }
+  list.innerHTML=files.map((f,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--gray2);border-radius:8px;margin-bottom:8px;background:#fff">
+    <div style="font-size:24px">${f.icon}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div>
+      <div style="font-size:11px;color:var(--text3)">${f.type.toUpperCase()} · ${(f.size/1024).toFixed(1)} KB · Tải lên: ${f.date}</div>
+    </div>
+    ${f.url?`<a href="${f.url}" download="${f.name}" class="btn btn-secondary btn-sm">⬇ Tải về</a>`:''}
+    <button class="btn btn-danger btn-sm" onclick="deleteLawFile(${i})">🗑️</button>
+  </div>`).join('');
+}
+
+function deleteLawFile(i){
+  if(!confirm('Xóa file này?')) return;
+  (STATE.lawFiles||[]).splice(i,1);
+  save('lawFiles', STATE.lawFiles);
+  renderLawFiles();
+  showNotify('Đã xóa file','green');
+}
+
+// ═══════════════════════════════════════════════════
+// BIỂU MẪU – TẢI EXCEL LÊN
+// ═══════════════════════════════════════════════════
+function uploadTemplateExcel(inp){
+  var f=inp.files[0]; if(!f) return;
+  var tmpl={
+    id:'xls_'+Date.now(),
+    name:f.name.replace(/\.[^.]+$/,'')+'  (Excel)',
+    desc:'Biểu mẫu Excel tùy chỉnh: '+f.name,
+    icon:'📊',tags:['Excel','tùy chỉnh'],
+    custom:true,
+    fileType:'excel',
+    origName:f.name,
+    content:null,
+    dataUrl:null
+  };
+  var reader=new FileReader();
+  reader.onload=function(e){
+    tmpl.dataUrl=e.target.result;
+    // For Excel, generate a CSV-based text content with placeholders applied
+    tmpl.content='[Excel template: '+f.name+']\nFile Excel gốc đã được lưu trữ. Khi xuất, hệ thống sẽ điền placeholder và tải file.';
+    STATE.templates.push(tmpl);
+    save('templates', STATE.templates);
+    renderTemplates();
+    showNotify('✅ Đã tải lên biểu mẫu Excel: '+f.name,'green');
+  };
+  reader.readAsDataURL(f);
+  inp.value='';
+}
+
+// Override selectTmpl to handle Excel type download
+var _origSelectTmpl = typeof selectTmpl !== 'undefined' ? selectTmpl : null;
+function selectTmpl(id){
+  var tmpl=STATE.templates.find(t=>t.id===id);
+  selectedTmpl=id;
+  renderTemplates();
+  if(tmpl && tmpl.fileType==='excel' && tmpl.dataUrl){
+    // Direct download of Excel file with placeholder values applied
+    var a=document.createElement('a');
+    a.href=tmpl.dataUrl;
+    a.download=tmpl.origName||'bieu_mau.xlsx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showNotify('✅ Đang tải file Excel gốc. Mở bằng Excel để điền thông tin.','green');
+    return;
+  }
+  // Default: show preview tab
+  var bpTab=document.querySelector('#panel-bieumau .tab-btn:nth-child(3)');
+  document.querySelectorAll('#panel-bieumau .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#panel-bieumau .tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('bm-preview').classList.add('active');
+  if(bpTab) bpTab.classList.add('active');
+  generatePreview(id);
+}
+
+// downloadHtmlDoc – proper Word HTML with Vietnamese font
+function downloadHtmlDocVi(){
+  var txt=getCurrentDocText()||'';
+  var r=STATE.calcResult||STATE.hoSo||{};
+  var fn='HoSo-BT-'+(r.chu||'').replace(/\s+/g,'_')+'-'+now()+'.html';
+  var html=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { margin: 2.5cm 3cm 2.5cm 3.5cm; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.8; color: #000; margin: 0; }
+  pre { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+  @media print { body { margin: 0; } }
+</style>
+<title>Hồ sơ bồi thường – ${r.chu||''}</title>
+</head>
+<body><pre>${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></body>
+</html>`;
+  dlBlob(html,fn,'text/html;charset=utf-8');
+  showNotify('✅ Đã xuất HTML – Mở bằng Word sẽ đúng font tiếng Việt','green');
+}
+
+// Override downloadHtmlDoc
+var downloadHtmlDoc = downloadHtmlDocVi;
+
+
 function downloadCsv(){
   var r = STATE.calcResult || STATE.hoSo;
   if(!r){ showNotify('Chưa có hồ sơ để xuất','red'); return; }
